@@ -3,11 +3,14 @@ import { ThemeToggle } from "./ThemeToggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const routeLabels: Record<string, string> = {
-  "/": "UBIK_HOME",
+  "/": "UBIK_BRIEFING",
   "/inbox": "UBIK_INBOX",
   "/projects": "UBIK_PROJECTS",
   "/meetings": "UBIK_MEETINGS",
   "/agents": "UBIK_AGENTS",
+  "/intelligence": "UBIK_INTELLIGENCE",
+  "/approvals": "UBIK_APPROVALS",
+  "/workflows": "UBIK_WORKFLOWS",
   "/settings": "UBIK_SETTINGS",
 };
 
