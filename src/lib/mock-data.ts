@@ -621,3 +621,26 @@ export const commandSections = [
 export const commandItems = commandSections.flatMap((s) =>
   s.items.map((item) => ({ ...item, category: s.label }))
 );
+
+// ─── SIDEBAR: PINNED ITEMS ───
+export type PinnedItemType = "chat" | "research" | "project" | "workflow" | "meeting";
+
+export const pinnedItems: { id: string; title: string; type: PinnedItemType }[] = [
+  { id: "p1", title: "Q2 Planning — Executive Review", type: "project" },
+  { id: "p2", title: "Competitor Landscape Report", type: "research" },
+  { id: "p3", title: "Board Deck v3 — Final", type: "chat" },
+  { id: "p4", title: "Shrimp Risk Monitor", type: "workflow" },
+  { id: "p5", title: "Supplier Review — Thai Union", type: "meeting" },
+];
+
+// ─── SIDEBAR: RECENT ITEMS ───
+export type RecentItemType = "chat" | "research" | "project" | "workflow" | "meeting" | "search";
+
+export const recentItems: { id: string; title: string; type: RecentItemType; time: string }[] = [
+  { id: "r1", title: "Rate confirmation — Maersk", type: "chat", time: "12m ago" },
+  { id: "r2", title: "Shrimp market deep dive", type: "research", time: "1h ago" },
+  { id: "r3", title: "Supplier audit project", type: "project", time: "2h ago" },
+  { id: "r4", title: "Morning trade workflow", type: "workflow", time: "3h ago" },
+  { id: "r5", title: "Buyer meeting brief", type: "meeting", time: "5h ago" },
+  { id: "r6", title: "Rotterdam port delays", type: "search", time: "Yesterday" },
+];

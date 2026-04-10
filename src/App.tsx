@@ -26,6 +26,11 @@ const App = () => (
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/meetings" element={<Placeholder />} />
+            <Route path="/intelligence" element={<Placeholder />} />
+            <Route path="/approvals" element={<Placeholder />} />
+            <Route path="/workflows" element={<Placeholder />} />
+            <Route path="/archive" element={<Placeholder />} />
+            <Route path="/help" element={<Placeholder />} />
             <Route path="/settings" element={<Placeholder />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
