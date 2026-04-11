@@ -1,37 +1,39 @@
-import { useState } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { RightDrawer, RuntimePanel } from "./ShellPanels";
 import { TopBar } from "./TopBar";
-import { FloatingChat } from "./FloatingChat";
-import { CommandPalette } from "./CommandPalette";
+import { WorkbenchTabs } from "./WorkbenchTabs";
+import { ShellStateProvider } from "./shell-state";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 interface ShellProps {
   children: React.ReactNode;
 }
 
 export function Shell({ children }: ShellProps) {
-  const [chatFocused, setChatFocused] = useState(false);
-
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 relative">
-          <TopBar />
-          <main className="flex-1 overflow-auto pb-28 relative">
-            {/* Focus overlay */}
-            {chatFocused && (
-              <div
-                className="absolute inset-0 bg-background/60 z-40 transition-opacity duration-200"
-                onClick={() => setChatFocused(false)}
-              />
-            )}
-            {children}
-          </main>
-          <FloatingChat onFocusChange={setChatFocused} />
+    <SidebarProvider
+      defaultOpen
+      style={
+        {
+          "--sidebar-width": "18rem",
+          "--sidebar-width-icon": "5.75rem",
+        } as React.CSSProperties
+      }
+    >
+      <ShellStateProvider>
+        <div className="flex min-h-screen w-full bg-background text-foreground">
+          <AppSidebar />
+          <SidebarInset className="min-h-screen border-l border-border">
+            <TopBar />
+            <WorkbenchTabs />
+            <div className="flex min-h-0 flex-1 overflow-hidden">
+              <main className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</main>
+              <RightDrawer />
+              <RuntimePanel />
+            </div>
+          </SidebarInset>
         </div>
-      </div>
-      <CommandPalette />
+      </ShellStateProvider>
     </SidebarProvider>
   );
 }

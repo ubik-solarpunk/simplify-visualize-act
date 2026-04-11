@@ -6,9 +6,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Shell } from "@/components/Shell";
 import Index from "./pages/Index";
 import Agents from "./pages/Agents";
+import Approvals from "./pages/Approvals";
+import Archive from "./pages/Archive";
+import Help from "./pages/Help";
 import Inbox from "./pages/Inbox";
+import Intelligence from "./pages/Intelligence";
+import Meetings from "./pages/Meetings";
 import Projects from "./pages/Projects";
-import Placeholder from "./pages/Placeholder";
+import Settings from "./pages/Settings";
+import Workflows from "./pages/Workflows";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,16 +28,17 @@ const App = () => (
         <Shell>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/chat" element={<Index />} />
             <Route path="/agents" element={<Agents />} />
+            <Route path="/approvals" element={<Approvals />} />
+            <Route path="/archive" element={<Archive />} />
+            <Route path="/help" element={<Help />} />
             <Route path="/inbox" element={<Inbox />} />
+            <Route path="/intelligence" element={<Intelligence />} />
+            <Route path="/meetings" element={<Meetings />} />
             <Route path="/projects" element={<Projects />} />
-            <Route path="/meetings" element={<Placeholder />} />
-            <Route path="/intelligence" element={<Placeholder />} />
-            <Route path="/approvals" element={<Placeholder />} />
-            <Route path="/workflows" element={<Placeholder />} />
-            <Route path="/archive" element={<Placeholder />} />
-            <Route path="/help" element={<Placeholder />} />
-            <Route path="/settings" element={<Placeholder />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/workflows" element={<Workflows />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Shell>
