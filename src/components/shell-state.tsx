@@ -25,6 +25,25 @@ function buildRouteTab(pathname: string): WorkbenchTab {
   };
 }
 
+function insertTabAt(tabs: WorkbenchTab[], tab: WorkbenchTab, index: number) {
+  const nextTabs = [...tabs];
+  nextTabs.splice(index, 0, tab);
+  return nextTabs;
+}
+
+function buildTabFromRoute(pathname: string, fallbackId: string): WorkbenchTab {
+  const route = getRouteMeta(pathname);
+
+  return {
+    id: fallbackId,
+    routeKey: route?.key ?? "tab",
+    title: route?.title ?? "Workspace",
+    path: pathname,
+    pinned: pathname === "/",
+    closable: pathname !== "/",
+  };
+}
+
 export function ShellStateProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -73,6 +92,59 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     navigate({
       pathname: tab.path,
       search: `tab=${tab.id}`,
+    });
+  };
+
+  const createTab = (pathname: string) => {
+    const route = getRouteMeta(pathname);
+    if (!route) return;
+
+    const nextTab: WorkbenchTab =
+      pathname === "/"
+        ? {
+            ...buildRouteTab(pathname),
+            pinned: false,
+            closable: true,
+          }
+        : buildRouteTab(pathname);
+    const activeIndex = tabs.findIndex((item) => item.id === activeTabId);
+    const insertIndex = activeIndex === -1 ? tabs.length : activeIndex + 1;
+    const nextTabs = insertTabAt(tabs, nextTab, insertIndex);
+
+    setTabs(nextTabs);
+    navigate({
+      pathname: route.path,
+      search: `tab=${nextTab.id}`,
+    });
+  };
+
+  const navigateCurrentTab = (pathname: string) => {
+    const activeTab = tabs.find((item) => item.id === activeTabId);
+    const existingTab = tabs.find((item) => item.path === pathname);
+    const route = getRouteMeta(pathname);
+
+    if (existingTab) {
+      navigate({
+        pathname: existingTab.path,
+        search: `tab=${existingTab.id}`,
+      });
+      return;
+    }
+
+    if (!activeTab || !route) {
+      navigate({ pathname });
+      return;
+    }
+
+    const nextTab = {
+      ...buildTabFromRoute(pathname, activeTab.id),
+      pinned: activeTab.id === "chat-home" && pathname === "/",
+      closable: !(activeTab.id === "chat-home" && pathname === "/"),
+    };
+    setTabs((current) => current.map((item) => (item.id === activeTab.id ? nextTab : item)));
+    navigate({
+      pathname: route.path,
+      search: `tab=${activeTab.id}`,
     });
   };
 
@@ -130,6 +202,19 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     setTabs(nextTabs);
   };
 
+  const reorderTab = (id: string, targetId: string) => {
+    if (id === targetId) return;
+
+    const sourceIndex = tabs.findIndex((item) => item.id === id);
+    const targetIndex = tabs.findIndex((item) => item.id === targetId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const nextTabs = [...tabs];
+    const [moved] = nextTabs.splice(sourceIndex, 1);
+    nextTabs.splice(targetIndex, 0, moved);
+    setTabs(nextTabs);
+  };
+
   const togglePin = (id: string) => {
     setTabs((current) =>
       current.map((tab) => (tab.id === id ? { ...tab, pinned: !tab.pinned } : tab)),
@@ -166,9 +251,12 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     drawerContent,
     runtimeContent,
     selectTab,
+    createTab,
+    navigateCurrentTab,
     closeTab,
     duplicateTab,
     moveTab,
+    reorderTab,
     togglePin,
     reopenTab,
     openDrawer: setDrawerContent,

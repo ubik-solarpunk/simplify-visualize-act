@@ -96,7 +96,7 @@ function SectionToggle({
 
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
-  const { openDrawer } = useShellState();
+  const { openDrawer, navigateCurrentTab } = useShellState();
   const location = useLocation();
   const collapsed = state === "collapsed";
   const [recentSearch, setRecentSearch] = useWorkbenchState("recent-search", "");
@@ -194,7 +194,14 @@ export function AppSidebar() {
                               }`
                         }
                       >
-                        <NavLink to={item.path} end={item.path === "/"}>
+                        <NavLink
+                          to={item.path}
+                          end={item.path === "/"}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            navigateCurrentTab(item.path);
+                          }}
+                        >
                           <Icon className="h-4 w-4 shrink-0" />
                           {!collapsed ? <span>{item.title}</span> : null}
                           {!collapsed && item.badge ? (
@@ -297,7 +304,13 @@ export function AppSidebar() {
                       : "h-12 rounded-none px-4 font-mono text-[11px] uppercase tracking-[0.16em] text-sidebar-foreground/78"
                   }
                 >
-                  <NavLink to={item.path}>
+                  <NavLink
+                    to={item.path}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      navigateCurrentTab(item.path);
+                    }}
+                  >
                     <Icon className="h-4 w-4" />
                     {!collapsed ? <span>{item.title}</span> : null}
                   </NavLink>

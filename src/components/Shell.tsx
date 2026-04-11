@@ -24,8 +24,8 @@ export function Shell({ children }: ShellProps) {
         <div className="flex min-h-screen w-full bg-background text-foreground">
           <AppSidebar />
           <SidebarInset className="min-h-screen border-l border-border">
-            <TopBar />
             <WorkbenchTabs />
+            <TopBar />
             <div className="flex min-h-0 flex-1 overflow-hidden">
               <main className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</main>
               <RightDrawer />

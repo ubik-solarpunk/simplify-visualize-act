@@ -116,9 +116,14 @@ export const navigationItems: NavigationItem[] = [
 
 export const initialWorkbenchTabs: WorkbenchTab[] = [
   { id: "chat-home", routeKey: "chat", title: "Know Anything", path: "/", pinned: true, closable: false },
-  { id: "inbox-priority", routeKey: "inbox", title: "Priority Inbox", path: "/inbox", pinned: true, closable: true },
-  { id: "approvals-q2", routeKey: "approvals", title: "Approvals Queue", path: "/approvals", closable: true },
+  { id: "inbox-main", routeKey: "inbox", title: "Inbox", path: "/inbox", pinned: true, closable: true },
+  { id: "meetings-main", routeKey: "meetings", title: "Meetings", path: "/meetings", pinned: true, closable: true },
+  { id: "projects-main", routeKey: "projects", title: "Projects", path: "/projects", pinned: true, closable: true },
 ];
+
+export const workbenchLauncherRoutes = routeMetas.filter((route) =>
+  ["/", "/inbox", "/meetings", "/projects", "/intelligence", "/approvals"].includes(route.path),
+);
 
 export const pinnedItems: PinnedItem[] = [
   { id: "pin-1", title: "Rate confirmation response", type: "chat", subtitle: "Awaiting legal sign-off" },

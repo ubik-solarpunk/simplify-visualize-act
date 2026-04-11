@@ -11,9 +11,12 @@ export type ShellStateContextValue = {
   drawerContent: DrawerContent | null;
   runtimeContent: RuntimeContent | null;
   selectTab: (id: string) => void;
+  createTab: (pathname: string) => void;
+  navigateCurrentTab: (pathname: string) => void;
   closeTab: (id: string) => void;
   duplicateTab: (id: string) => void;
   moveTab: (id: string, direction: "left" | "right") => void;
+  reorderTab: (id: string, targetId: string) => void;
   togglePin: (id: string) => void;
   reopenTab: (id: string) => void;
   openDrawer: (content: DrawerContent | null) => void;

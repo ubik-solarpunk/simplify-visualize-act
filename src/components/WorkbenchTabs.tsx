@@ -1,7 +1,9 @@
-import { MoreHorizontal, Pin, Plus, RotateCcw, X } from "lucide-react";
+import { Bell, Plus, X } from "lucide-react";
+import { useState } from "react";
 
-import { SmallButton } from "@/components/ubik-primitives";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useShellState } from "@/hooks/use-shell-state";
+import { workbenchLauncherRoutes } from "@/lib/ubik-data";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,82 +15,107 @@ export function WorkbenchTabs() {
   const {
     activeTabId,
     tabs,
-    closedTabs,
     selectTab,
+    createTab,
     closeTab,
-    duplicateTab,
-    moveTab,
-    togglePin,
-    reopenTab,
+    reorderTab,
+    openDrawer,
   } = useShellState();
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   return (
-    <div className="border-b border-border bg-card/80">
-      <div className="flex items-center gap-2 overflow-x-auto px-4 py-2">
-        {tabs.map((tab) => {
-          const active = tab.id === activeTabId;
+    <div className="border-b border-border bg-[#f6f3ed]">
+      <div className="flex items-center justify-between gap-3 px-3 py-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+          {tabs.map((tab) => {
+            const active = tab.id === activeTabId;
+            const dragging = tab.id === draggingId;
 
-          return (
-            <div
-              key={tab.id}
-              className={`flex items-center border ${
-                active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground"
-              }`}
-            >
-              <button
-                className="flex min-w-[160px] items-center gap-2 px-3 py-2 text-left font-mono text-[11px] uppercase tracking-[0.14em]"
-                onClick={() => selectTab(tab.id)}
+            return (
+              <div
+                key={tab.id}
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", tab.id);
+                  setDraggingId(tab.id);
+                }}
+                onDragEnd={() => setDraggingId(null)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  const sourceId = event.dataTransfer.getData("text/plain");
+                  if (sourceId) reorderTab(sourceId, tab.id);
+                  setDraggingId(null);
+                }}
+                className={`group flex shrink-0 items-center ${dragging ? "opacity-60" : ""}`}
               >
-                {tab.pinned ? <Pin className="h-3.5 w-3.5" /> : null}
-                <span className="truncate">{tab.title}</span>
-              </button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="border-l border-current/20 px-2 py-2">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 font-mono text-[11px] uppercase tracking-[0.14em]">
-                  <DropdownMenuItem onClick={() => togglePin(tab.id)}>
-                    {tab.pinned ? "Unpin" : "Pin"}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => duplicateTab(tab.id)}>Duplicate</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => moveTab(tab.id, "left")}>Move Left</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => moveTab(tab.id, "right")}>Move Right</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {tab.closable === false ? null : (
-                <button className="border-l border-current/20 px-2 py-2" onClick={() => closeTab(tab.id)}>
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          );
-        })}
-
-        <div className="ml-auto flex items-center gap-2">
-          {closedTabs.length ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SmallButton className="px-2">
-                  <RotateCcw className="mr-2 h-3.5 w-3.5" />
-                  Reopen
-                </SmallButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 font-mono text-[11px] uppercase tracking-[0.14em]">
-                {closedTabs.map((tab) => (
-                  <DropdownMenuItem key={tab.id} onClick={() => reopenTab(tab.id)}>
+                <div
+                  className={`flex h-10 items-stretch overflow-hidden rounded-sm border transition-colors ${
+                    active
+                      ? "border-[#1f1f1f] bg-[#1f1f1f] text-[#f7f5f0]"
+                      : "border-[#ddd7cf] bg-[#fbfaf7] text-[#494741] hover:border-[#c9c1b6] hover:bg-white"
+                  }`}
+                >
+                  <button
+                    className="flex h-10 max-w-[168px] items-center truncate px-4 font-mono text-[11px] font-medium uppercase tracking-[0.16em]"
+                    onClick={() => selectTab(tab.id)}
+                  >
                     {tab.title}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
+                  </button>
+                  {tab.closable === false ? null : (
+                    <button
+                      className={`flex h-10 w-10 items-center justify-center border-l border-current/20 transition-opacity ${
+                        active ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      }`}
+                      onClick={() => closeTab(tab.id)}
+                      aria-label={`Close ${tab.title}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
 
-          <SmallButton onClick={() => duplicateTab(activeTabId)}>
-            <Plus className="mr-2 h-3.5 w-3.5" />
-            New Tab
-          </SmallButton>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="ml-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-primary bg-primary text-primary-foreground transition-colors hover:brightness-95">
+                <Plus className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-52 font-mono text-[11px] uppercase tracking-[0.14em]">
+              {workbenchLauncherRoutes.map((route) => (
+                <DropdownMenuItem key={route.key} onClick={() => createTab(route.path)}>
+                  {route.title}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            className="relative flex h-10 w-10 items-center justify-center border border-primary bg-primary text-primary-foreground transition-colors hover:brightness-95"
+            onClick={() =>
+              openDrawer({
+                title: "Notifications",
+                eyebrow: "Top Workbench",
+                description: "Global notifications stay accessible beside the workbench controls.",
+                timeline: [
+                  "Thai Union exception waiting on review",
+                  "Pricing monitor finished run 842",
+                  "Supplier review meeting starts in 43 minutes",
+                ],
+              })
+            }
+            aria-label="Open notifications"
+          >
+            <Bell className="h-4 w-4" />
+            <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 bg-primary" />
+          </button>
+          <ThemeToggle />
         </div>
       </div>
     </div>
