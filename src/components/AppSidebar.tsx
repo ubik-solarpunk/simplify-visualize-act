@@ -81,8 +81,11 @@ function SectionToggle({
   if (hidden) return null;
 
   return (
-    <div className="flex items-center justify-between px-3 pt-4">
-      <button className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-sidebar-foreground/55" onClick={onClick}>
+    <div className="flex min-h-[40px] items-center justify-between gap-4 px-4 pt-4">
+      <button
+        className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-sidebar-foreground/55"
+        onClick={onClick}
+      >
         <span>{label}</span>
         {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
       </button>
@@ -245,19 +248,19 @@ export function AppSidebar() {
               open={sectionState.recents}
               onClick={() => toggleSection("recents")}
               extra={
-                <div className="relative">
+                <div className="relative shrink-0">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-foreground/45" />
                   <input
                     value={recentSearch}
                     onChange={(event) => setRecentSearch(event.target.value)}
                     placeholder="Search"
-                    className="w-[172px] border border-sidebar-border bg-transparent py-2.5 pl-9 pr-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-sidebar-foreground outline-none placeholder:text-sidebar-foreground/45 focus:border-sidebar-foreground/35"
+                    className="h-10 w-[148px] border border-sidebar-border bg-transparent pl-9 pr-3 font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground outline-none placeholder:text-sidebar-foreground/45 focus:border-sidebar-foreground/35"
                   />
                 </div>
               }
             />
             {sectionState.recents ? (
-              <div className="space-y-1 px-4 pt-3">
+              <div className="space-y-1 px-4 pt-2">
                 {filteredRecents.slice(0, 6).map((item) => (
                   <button key={item.id} className="grid w-full grid-cols-[minmax(0,1fr)_82px] gap-3 border border-transparent px-2 py-2.5 text-left text-sidebar-foreground/75 hover:border-sidebar-border hover:bg-sidebar-accent">
                     <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] leading-7">{item.title}</span>
