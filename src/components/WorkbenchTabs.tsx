@@ -22,6 +22,7 @@ export function WorkbenchTabs() {
     openDrawer,
   } = useShellState();
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const tabsAtLimit = tabs.length >= 8;
 
   return (
     <div className="border-b border-border bg-[#f6f3ed]">
@@ -30,6 +31,7 @@ export function WorkbenchTabs() {
           {tabs.map((tab) => {
             const active = tab.id === activeTabId;
             const dragging = tab.id === draggingId;
+            const temporary = tab.temporary === true;
 
             return (
               <div
@@ -52,9 +54,13 @@ export function WorkbenchTabs() {
               >
                 <div
                   className={`flex h-9 items-stretch overflow-hidden rounded-sm border transition-colors ${
-                    active
-                      ? "border-[#1f1f1f] bg-[#1f1f1f] text-[#f7f5f0]"
-                      : "border-[#ddd7cf] bg-[#fbfaf7] text-[#494741] hover:border-[#c9c1b6] hover:bg-white"
+                    temporary
+                      ? active
+                        ? "border-[#b4372f] bg-[#b4372f] text-[#fbf6f1]"
+                        : "border-[#e5b2aa] bg-[#fbf2f0] text-[#8d362d] hover:border-[#cc8479] hover:bg-[#fff6f4]"
+                      : active
+                        ? "border-[#1f1f1f] bg-[#1f1f1f] text-[#f7f5f0]"
+                        : "border-[#ddd7cf] bg-[#fbfaf7] text-[#494741] hover:border-[#c9c1b6] hover:bg-white"
                   }`}
                 >
                   <button
@@ -81,7 +87,15 @@ export function WorkbenchTabs() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-[#ddd7cf] bg-[#fbfaf7] text-primary transition-colors hover:border-[#c9c1b6] hover:bg-white">
+              <button
+                className={`ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border transition-colors ${
+                  tabsAtLimit
+                    ? "cursor-not-allowed border-[#e7e1d8] bg-[#f7f4ef] text-[#c0b8ad]"
+                    : "border-[#ddd7cf] bg-[#fbfaf7] text-primary hover:border-[#c9c1b6] hover:bg-white"
+                }`}
+                disabled={tabsAtLimit}
+                aria-label="Open new tab menu"
+              >
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>

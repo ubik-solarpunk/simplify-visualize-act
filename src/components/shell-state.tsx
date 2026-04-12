@@ -6,6 +6,15 @@ import { ShellStateContext, type ShellPageStateMap } from "@/components/shell-st
 import type { DrawerContent, RuntimeContent, WorkbenchTab } from "@/lib/ubik-types";
 
 let tabSequence = 10;
+const MAX_WORKBENCH_TABS = 8;
+
+const KNOW_ANYTHING_DEFAULTS = {
+  composer: "",
+  mode: "speed",
+  sources: ["org_knowledge"] as string[],
+  attachments: [] as string[],
+  connectorScope: null as string | null,
+};
 
 function makeTabId(routeKey: string) {
   tabSequence += 1;
@@ -22,6 +31,16 @@ function buildRouteTab(pathname: string): WorkbenchTab {
     path: pathname,
     pinned: pathname === "/",
     closable: pathname !== "/",
+  };
+}
+
+function buildTemporaryKnowAnythingTab(): WorkbenchTab {
+  return {
+    ...buildRouteTab("/"),
+    title: "Temp Chat",
+    pinned: false,
+    closable: true,
+    temporary: true,
   };
 }
 
@@ -44,6 +63,44 @@ function buildTabFromRoute(pathname: string, fallbackId: string): WorkbenchTab {
   };
 }
 
+function getKnowAnythingPageState(pageState: ShellPageStateMap, tabId: string) {
+  return {
+    composer: (pageState[`${tabId}:chat-composer`] as string | undefined) ?? KNOW_ANYTHING_DEFAULTS.composer,
+    mode: (pageState[`${tabId}:chat-mode`] as string | undefined) ?? KNOW_ANYTHING_DEFAULTS.mode,
+    sources: (pageState[`${tabId}:chat-sources`] as string[] | undefined) ?? KNOW_ANYTHING_DEFAULTS.sources,
+    attachments:
+      (pageState[`${tabId}:chat-attachments`] as string[] | undefined) ?? KNOW_ANYTHING_DEFAULTS.attachments,
+    connectorScope:
+      (pageState[`${tabId}:chat-connector-scope`] as string | null | undefined) ??
+      KNOW_ANYTHING_DEFAULTS.connectorScope,
+  };
+}
+
+function isKnowAnythingTabPristine(tab: WorkbenchTab | undefined, pageState: ShellPageStateMap) {
+  if (!tab || tab.path !== "/") return false;
+
+  const chatState = getKnowAnythingPageState(pageState, tab.id);
+  return (
+    chatState.composer === "" &&
+    chatState.mode === KNOW_ANYTHING_DEFAULTS.mode &&
+    chatState.attachments.length === 0 &&
+    chatState.connectorScope === null &&
+    chatState.sources.length === 1 &&
+    chatState.sources[0] === "org_knowledge"
+  );
+}
+
+function resetKnowAnythingPageState(pageState: ShellPageStateMap, tabId: string): ShellPageStateMap {
+  return {
+    ...pageState,
+    [`${tabId}:chat-composer`]: KNOW_ANYTHING_DEFAULTS.composer,
+    [`${tabId}:chat-mode`]: KNOW_ANYTHING_DEFAULTS.mode,
+    [`${tabId}:chat-sources`]: [...KNOW_ANYTHING_DEFAULTS.sources],
+    [`${tabId}:chat-attachments`]: [...KNOW_ANYTHING_DEFAULTS.attachments],
+    [`${tabId}:chat-connector-scope`]: KNOW_ANYTHING_DEFAULTS.connectorScope,
+  };
+}
+
 export function ShellStateProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,6 +111,15 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
   const [runtimeContent, setRuntimeContent] = useState<RuntimeContent | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [pageState, setPageStateMap] = useState<ShellPageStateMap>({});
+
+  const showTabLimitReached = () => {
+    setDrawerContent({
+      title: "Tab limit reached",
+      eyebrow: "Workbench",
+      description: `You can keep up to ${MAX_WORKBENCH_TABS} tabs open at once to protect the web layout.`,
+      actions: ["Close a tab", "Return to Know Anything"],
+    });
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -99,6 +165,10 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
   const createTab = (pathname: string) => {
     const route = getRouteMeta(pathname);
     if (!route) return null;
+    if (tabs.length >= MAX_WORKBENCH_TABS) {
+      showTabLimitReached();
+      return null;
+    }
 
     const nextTab: WorkbenchTab =
       pathname === "/"
@@ -115,6 +185,45 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     setTabs(nextTabs);
     navigate({
       pathname: route.path,
+      search: `tab=${nextTab.id}`,
+    });
+    return nextTab.id;
+  };
+
+  const openFreshKnowAnything = () => {
+    const activeTab = tabs.find((item) => item.id === activeTabId);
+
+    if (isKnowAnythingTabPristine(activeTab, pageState)) {
+      setPageStateMap((current) => resetKnowAnythingPageState(current, activeTab.id));
+      navigate({
+        pathname: "/",
+        search: `tab=${activeTab.id}`,
+      });
+      return activeTab.id;
+    }
+
+    const nextTabId = createTab("/");
+    if (!nextTabId) return null;
+
+    setPageStateMap((current) => resetKnowAnythingPageState(current, nextTabId));
+    return nextTabId;
+  };
+
+  const openTemporaryKnowAnything = () => {
+    if (tabs.length >= MAX_WORKBENCH_TABS) {
+      showTabLimitReached();
+      return null;
+    }
+
+    const nextTab = buildTemporaryKnowAnythingTab();
+    const activeIndex = tabs.findIndex((item) => item.id === activeTabId);
+    const insertIndex = activeIndex === -1 ? tabs.length : activeIndex + 1;
+    const nextTabs = insertTabAt(tabs, nextTab, insertIndex);
+
+    setTabs(nextTabs);
+    setPageStateMap((current) => resetKnowAnythingPageState(current, nextTab.id));
+    navigate({
+      pathname: "/",
       search: `tab=${nextTab.id}`,
     });
     return nextTab.id;
@@ -172,6 +281,10 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
   const duplicateTab = (id: string) => {
     const source = tabs.find((item) => item.id === id);
     if (!source) return;
+    if (tabs.length >= MAX_WORKBENCH_TABS) {
+      showTabLimitReached();
+      return;
+    }
 
     const duplicate: WorkbenchTab = {
       ...source,
@@ -256,6 +369,8 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     setCommandPaletteOpen,
     selectTab,
     createTab,
+    openFreshKnowAnything,
+    openTemporaryKnowAnything,
     navigateCurrentTab,
     closeTab,
     duplicateTab,

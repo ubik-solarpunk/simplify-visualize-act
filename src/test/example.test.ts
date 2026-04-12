@@ -56,6 +56,43 @@ describe("Ubik shell", () => {
     expect(screen.getByText("Internet")).toBeInTheDocument();
   });
 
+  it("reuses the base Know Anything tab when New Thread is clicked on a pristine chat", async () => {
+    window.history.pushState({}, "", "/?tab=chat-home");
+    render(createElement(App));
+
+    fireEvent.click(await screen.findByText("New Thread"));
+
+    const composer = await screen.findByPlaceholderText(
+      "Start with an operator task, a thread to continue, or a decision that needs context.",
+    );
+
+    expect(composer).toHaveValue("");
+    expect(window.location.search).toContain("tab=chat-home");
+  });
+
+  it("creates a fresh Know Anything tab when New Thread is clicked after work starts", async () => {
+    window.history.pushState({}, "", "/?tab=chat-home");
+    render(createElement(App));
+
+    const composer = await screen.findByPlaceholderText(
+      "Start with an operator task, a thread to continue, or a decision that needs context.",
+    );
+
+    fireEvent.change(composer, {
+      target: { value: "Draft a shipment delay response." },
+    });
+
+    fireEvent.click(await screen.findByText("New Thread"));
+
+    await waitFor(() => {
+      expect(window.location.search).not.toContain("tab=chat-home");
+    });
+
+    expect(
+      screen.getByPlaceholderText("Start with an operator task, a thread to continue, or a decision that needs context."),
+    ).toHaveValue("");
+  });
+
   it("opens the plus menu and adds connector context", async () => {
     window.history.pushState({}, "", "/");
     render(createElement(App));
@@ -65,6 +102,61 @@ describe("Ubik shell", () => {
     fireEvent.click(await screen.findByRole("menuitem", { name: "Salesforce" }));
 
     expect(await screen.findByText("Salesforce")).toBeInTheDocument();
+  });
+
+  it("opens the share drawer from Know Anything", async () => {
+    window.history.pushState({}, "", "/");
+    render(createElement(App));
+
+    fireEvent.click(await screen.findByText("Share"));
+
+    expect(await screen.findByText("Share thread")).toBeInTheDocument();
+    expect(screen.getByText("Copy internal link")).toBeInTheDocument();
+  });
+
+  it("opens a fresh temporary chat from the composer icon", async () => {
+    window.history.pushState({}, "", "/?tab=chat-home");
+    render(createElement(App));
+
+    const composer = await screen.findByPlaceholderText(
+      "Start with an operator task, a thread to continue, or a decision that needs context.",
+    );
+
+    fireEvent.change(composer, {
+      target: { value: "Review the latest approvals queue." },
+    });
+
+    fireEvent.click(screen.getByLabelText("Open temporary chat"));
+
+    await waitFor(() => {
+      expect(window.location.search).not.toContain("tab=chat-home");
+    });
+
+    expect(
+      screen.getByPlaceholderText("Start with an operator task, a thread to continue, or a decision that needs context."),
+    ).toHaveValue("");
+    expect(screen.getByText("Temp Chat")).toBeInTheDocument();
+  });
+
+  it("limits the workbench to 8 tabs", async () => {
+    window.history.pushState({}, "", "/?tab=chat-home");
+    render(createElement(App));
+
+    for (let index = 0; index < 4; index += 1) {
+      fireEvent.click(screen.getByLabelText("Open temporary chat"));
+      await waitFor(() => {
+        expect(screen.getAllByText("Temp Chat").length).toBe(index + 1);
+      });
+    }
+
+    fireEvent.click(screen.getByLabelText("Open temporary chat"));
+    fireEvent.click(await screen.findByText("New Thread"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Tab limit reached")).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByRole("button", { name: /Close / }).length).toBe(7);
   });
 
   it("opens the command palette from Create", async () => {

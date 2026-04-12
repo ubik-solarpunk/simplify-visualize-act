@@ -25,8 +25,8 @@ export const routeMetas: RouteMeta[] = [
     key: "chat",
     title: "Know Anything",
     path: "/",
-    description: "Operator home for context assembly, decisions, and next actions.",
-    actions: [{ label: "New Thread", kind: "primary" }, { label: "Connect", kind: "secondary" }],
+    description: "Ask across organization, inbox, meetings, projects or internet, when you need them.",
+    actions: [{ label: "New Thread", kind: "primary" }, { label: "Share", kind: "secondary" }],
   },
   {
     key: "inbox",

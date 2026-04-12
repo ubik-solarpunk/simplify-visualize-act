@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Ghost } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -7,8 +7,39 @@ import { getRouteMeta } from "@/lib/ubik-data";
 
 export function TopBar() {
   const location = useLocation();
-  const { openDrawer, setCommandPaletteOpen } = useShellState();
+  const { openDrawer, openFreshKnowAnything, openTemporaryKnowAnything } = useShellState();
   const route = getRouteMeta(location.pathname);
+
+  const handleAction = (label: string) => {
+    if (route?.key === "chat" && label === "New Thread") {
+      openFreshKnowAnything();
+      return;
+    }
+
+    if (route?.key === "chat" && label === "Share") {
+      openDrawer({
+        title: "Share thread",
+        eyebrow: route.title,
+        description: "Seeded sharing surface for internal handoff or public permission links.",
+        metadata: [
+          { label: "Thread", value: "Current Know Anything tab" },
+          { label: "Access", value: "Internal default" },
+        ],
+        actions: ["Copy internal link", "Create public link", "Restrict access"],
+      });
+      return;
+    }
+
+    openDrawer({
+      title: label,
+      eyebrow: route?.title,
+      description: `Action surface for ${label.toLowerCase()} on the ${route?.title} page.`,
+      metadata: [
+        { label: "Page", value: route?.title ?? "Workspace" },
+        { label: "Mode", value: "Frontend seeded" },
+      ],
+    });
+  };
 
   return (
     <header className="border-b border-border bg-background">
@@ -22,38 +53,26 @@ export function TopBar() {
           {route?.actions.map((action) => (
             <button
               key={action.label}
-              className={`border px-3 py-2.5 font-mono text-[10.5px] uppercase tracking-[0.14em] ${
+              className={`h-9 border px-3.5 font-mono text-[10px] uppercase tracking-[0.14em] ${
                 action.kind === "primary"
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-card text-foreground"
               }`}
-              onClick={() =>
-                openDrawer({
-                  title: action.label,
-                  eyebrow: route.title,
-                  description: `Action surface for ${action.label.toLowerCase()} on the ${route.title} page.`,
-                  metadata: [
-                    { label: "Page", value: route.title },
-                    { label: "Mode", value: "Frontend seeded" },
-                  ],
-                })
-              }
+              onClick={() => handleAction(action.label)}
             >
               {action.label}
             </button>
           ))}
-
-          <button
-            className="flex items-center gap-2 border border-border bg-foreground px-3.5 py-2.5 text-left font-mono text-[9.5px] uppercase tracking-[0.12em] text-background"
-            onClick={() => setCommandPaletteOpen(true)}
-            aria-label="Open command palette"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Create</span>
-            <kbd className="ml-auto border border-current/25 px-1.5 py-0.5 font-mono text-[9px] tracking-wide text-background/80">
-              ⌘K
-            </kbd>
-          </button>
+          {route?.key === "chat" ? (
+            <button
+              className="flex h-9 w-9 items-center justify-center border border-border bg-card text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
+              onClick={() => openTemporaryKnowAnything()}
+              aria-label="Open temporary chat"
+              type="button"
+            >
+              <Ghost className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
       </div>
     </header>

@@ -168,12 +168,12 @@ export default function Index() {
         <div className="w-full max-w-[68rem]">
           <div className="px-1 py-2 lg:px-2 lg:py-3">
             <div className="mx-auto max-w-5xl text-center">
-              <h2 className="whitespace-nowrap font-mono text-[1.25rem] font-semibold uppercase tracking-[0.12em] lg:text-[1.7rem]">
-                Start with a question or a task.
-              </h2>
-              <p className="mt-3 text-sm text-muted-foreground lg:text-[16px]">
-                Ask across organization, inbox, meetings, projects or internet, when you need them.
+              <p className="text-[1.5rem] leading-none text-primary lg:text-[2.2rem]">
+                Back at it, Hemanth
               </p>
+              <h2 className="mt-4 whitespace-nowrap font-mono text-[1.18rem] font-semibold uppercase tracking-[0.1em] lg:text-[1.55rem]">
+                Start with a question or a task
+              </h2>
             </div>
 
             <Surface className="mx-auto mt-5 max-w-[46rem] border border-border bg-card shadow-none">

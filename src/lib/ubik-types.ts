@@ -32,6 +32,7 @@ export type WorkbenchTab = {
   path: string;
   pinned?: boolean;
   closable?: boolean;
+  temporary?: boolean;
 };
 
 export type PinnedItem = {
