@@ -9,7 +9,7 @@ describe("Ubik shell", () => {
     window.history.pushState({}, "", "/");
     render(createElement(App));
 
-    expect(await screen.findByText("Start with a question or a task.")).toBeInTheDocument();
+    expect(await screen.findByText("Start with a question or a task")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Start with an operator task, a thread to continue, or a decision that needs context.")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("Search threads, notes, approvals")).not.toBeInTheDocument();
     expect(screen.queryByText("Recent Work")).not.toBeInTheDocument();
@@ -93,25 +93,27 @@ describe("Ubik shell", () => {
     ).toHaveValue("");
   });
 
-  it("opens the plus menu and adds connector context", async () => {
+  it("adds connector context from the composer toolbar", async () => {
     window.history.pushState({}, "", "/");
     render(createElement(App));
 
-    const trigger = await screen.findByLabelText("Open context menu");
-    fireEvent.click(trigger);
+    fireEvent.click(await screen.findByLabelText("Open context menu"));
     fireEvent.click(await screen.findByRole("menuitem", { name: "Salesforce" }));
 
     expect(await screen.findByText("Salesforce")).toBeInTheDocument();
   });
 
-  it("opens the share drawer from Know Anything", async () => {
+  it("opens the share dialog from Know Anything", async () => {
     window.history.pushState({}, "", "/");
     render(createElement(App));
 
     fireEvent.click(await screen.findByText("Share"));
 
-    expect(await screen.findByText("Share thread")).toBeInTheDocument();
-    expect(screen.getByText("Copy internal link")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Share" })).toBeInTheDocument();
+    expect(screen.getByText("Only me")).toBeInTheDocument();
+    expect(screen.getByText("Team access")).toBeInTheDocument();
+    expect(screen.getByText("Public access")).toBeInTheDocument();
+    expect(screen.getByText("Copy link")).toBeInTheDocument();
   });
 
   it("opens a fresh temporary chat from the composer icon", async () => {

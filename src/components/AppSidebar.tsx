@@ -83,7 +83,7 @@ function SectionToggle({
   return (
     <div className="flex min-h-[40px] items-center justify-between gap-4 px-4 pt-4">
       <button
-        className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-sidebar-foreground/55"
+        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/55"
         onClick={onClick}
       >
         <span>{label}</span>
@@ -158,8 +158,8 @@ export function AppSidebar() {
           </div>
         ) : (
           <div className="px-6 py-4">
-            <button
-              className="flex h-11 w-full items-center gap-2 border border-sidebar-border bg-sidebar-primary px-3 text-left font-mono text-[10.5px] uppercase tracking-[0.16em] text-sidebar-primary-foreground"
+              <button
+              className="flex h-11 w-full items-center gap-2 border border-sidebar-border bg-sidebar-primary px-3 text-left font-mono text-[11.5px] uppercase tracking-[0.16em] text-sidebar-primary-foreground"
               type="button"
               onClick={() => setCommandPaletteOpen(true)}
               aria-label="Open command palette"
@@ -198,7 +198,7 @@ export function AppSidebar() {
                             ? `mx-auto h-10 w-10 justify-center rounded-none px-0 ${
                                 active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/80"
                               }`
-                            : `h-11 rounded-none px-4 font-mono text-[9.5px] uppercase tracking-[0.14em] ${
+                            : `h-11 rounded-none px-4 font-mono text-[10.5px] uppercase tracking-[0.14em] ${
                                 active ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground/80"
                               }`
                         }
@@ -214,7 +214,7 @@ export function AppSidebar() {
                           <Icon className="h-4 w-4 shrink-0" />
                           {!collapsed ? <span>{item.title}</span> : null}
                           {!collapsed && item.badge ? (
-                            <span className="ml-auto border border-current/25 px-1.5 py-0.5 text-[9px]">{item.badge}</span>
+                            <span className="ml-auto border border-current/25 px-1.5 py-0.5 text-[10px]">{item.badge}</span>
                           ) : null}
                         </NavLink>
                       </SidebarMenuButton>

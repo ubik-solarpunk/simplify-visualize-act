@@ -1,14 +1,46 @@
-import { Ghost } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+import { Check, Ghost, Globe, Link2, Lock, X } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Surface } from "@/components/ubik-primitives";
 import { useShellState } from "@/hooks/use-shell-state";
 import { getRouteMeta } from "@/lib/ubik-data";
+
+const shareOptions = [
+  {
+    id: "private",
+    title: "Only me",
+    description: "Viewable by yourself only",
+    icon: Lock,
+    accentClass: "border-border bg-card text-foreground",
+  },
+  {
+    id: "team",
+    title: "Team access",
+    description: "Everyone in Solarpunk",
+    icon: "S",
+    accentClass: "border-foreground bg-foreground text-background",
+  },
+  {
+    id: "public",
+    title: "Public access",
+    description: "Anyone with a link can view",
+    icon: Globe,
+    accentClass: "border-border bg-card text-foreground",
+  },
+] as const;
+
+type ShareOptionId = (typeof shareOptions)[number]["id"];
 
 export function TopBar() {
   const location = useLocation();
   const { openDrawer, openFreshKnowAnything, openTemporaryKnowAnything } = useShellState();
   const route = getRouteMeta(location.pathname);
+  const shareWrapRef = useRef<HTMLDivElement | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareAccess, setShareAccess] = useState<ShareOptionId>("team");
 
   const handleAction = (label: string) => {
     if (route?.key === "chat" && label === "New Thread") {
@@ -17,16 +49,7 @@ export function TopBar() {
     }
 
     if (route?.key === "chat" && label === "Share") {
-      openDrawer({
-        title: "Share thread",
-        eyebrow: route.title,
-        description: "Seeded sharing surface for internal handoff or public permission links.",
-        metadata: [
-          { label: "Thread", value: "Current Know Anything tab" },
-          { label: "Access", value: "Internal default" },
-        ],
-        actions: ["Copy internal link", "Create public link", "Restrict access"],
-      });
+      setShareOpen((current) => !current);
       return;
     }
 
@@ -41,6 +64,22 @@ export function TopBar() {
     });
   };
 
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (shareWrapRef.current && !shareWrapRef.current.contains(event.target as Node)) {
+        setShareOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", onPointerDown);
+    return () => window.removeEventListener("mousedown", onPointerDown);
+  }, []);
+
+  const copyInternalLink = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    setShareOpen(false);
+  };
+
   return (
     <header className="border-b border-border bg-background">
       <div className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
@@ -50,19 +89,102 @@ export function TopBar() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          {route?.actions.map((action) => (
-            <button
-              key={action.label}
-              className={`h-9 border px-3.5 font-mono text-[10px] uppercase tracking-[0.14em] ${
-                action.kind === "primary"
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-card text-foreground"
-              }`}
-              onClick={() => handleAction(action.label)}
-            >
-              {action.label}
-            </button>
-          ))}
+          <div className="relative flex flex-wrap items-center gap-2" ref={shareWrapRef}>
+            {route?.actions.map((action) => (
+              <button
+                key={action.label}
+                className={`h-9 border px-3.5 font-mono text-[10px] uppercase tracking-[0.14em] ${
+                  action.kind === "primary"
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-card text-foreground"
+                }`}
+                onClick={() => handleAction(action.label)}
+                type="button"
+              >
+                {action.label}
+              </button>
+            ))}
+            {shareOpen && route?.key === "chat" ? (
+              <div className="absolute right-0 top-[calc(100%+0.75rem)] z-20 w-[min(18rem,calc(100vw-1rem))]">
+                <Surface className="border-border bg-background p-3 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+                  <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
+                    <h3 className="pt-0.5 font-mono text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground">
+                      Share
+                    </h3>
+                    <button
+                      className="flex h-8 w-8 items-center justify-center border border-border bg-card text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+                      onClick={() => setShareOpen(false)}
+                      type="button"
+                      aria-label="Close share"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-1.5 py-3">
+                    {shareOptions.map((option) => {
+                      const selected = shareAccess === option.id;
+
+                      return (
+                        <button
+                          key={option.id}
+                          className={`flex w-full items-center gap-2.5 border px-2.5 py-2.5 text-left transition-colors ${
+                            selected
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-border bg-background hover:bg-card"
+                          }`}
+                          onClick={() => setShareAccess(option.id)}
+                          type="button"
+                        >
+                          <span
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center border font-mono text-[13px] font-semibold ${
+                              selected
+                                ? "border-background/20 bg-background/10 text-background"
+                                : option.accentClass
+                            }`}
+                          >
+                            {typeof option.icon === "string" ? (
+                              <span className="leading-none">{option.icon}</span>
+                            ) : (
+                              <option.icon className="h-4 w-4" />
+                            )}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span
+                              className={`block font-mono text-[9px] uppercase tracking-[0.14em] ${
+                                selected ? "text-background" : "text-foreground"
+                              }`}
+                            >
+                              {option.title}
+                            </span>
+                            <span
+                              className={`mt-0.5 block text-[11px] leading-snug ${
+                                selected ? "text-background/80" : "text-muted-foreground"
+                              }`}
+                            >
+                              {option.description}
+                            </span>
+                          </span>
+                          <span className="flex w-6 justify-center">
+                            {selected ? <Check className="h-4 w-4 text-background" /> : null}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    className="mt-1 flex h-10 w-full items-center justify-center gap-2 border border-foreground bg-foreground px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90"
+                    type="button"
+                    onClick={copyInternalLink}
+                  >
+                    <Link2 className="h-4 w-4" />
+                    Copy link
+                  </button>
+                </Surface>
+              </div>
+            ) : null}
+          </div>
           {route?.key === "chat" ? (
             <button
               className="flex h-9 w-9 items-center justify-center border border-border bg-card text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
