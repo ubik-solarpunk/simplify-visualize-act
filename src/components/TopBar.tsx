@@ -44,13 +44,13 @@ export function TopBar() {
           ))}
 
           <button
-            className="flex items-center gap-2 border border-border bg-foreground px-4 py-2.5 text-left font-mono text-[10.5px] uppercase tracking-[0.14em] text-background"
+            className="flex items-center gap-2 border border-border bg-foreground px-3.5 py-2.5 text-left font-mono text-[9.5px] uppercase tracking-[0.12em] text-background"
             onClick={() => setCommandPaletteOpen(true)}
             aria-label="Open command palette"
           >
             <Sparkles className="h-3.5 w-3.5" />
             <span>Create</span>
-            <kbd className="ml-auto border border-current/25 px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-background/80">
+            <kbd className="ml-auto border border-current/25 px-1.5 py-0.5 font-mono text-[9px] tracking-wide text-background/80">
               ⌘K
             </kbd>
           </button>

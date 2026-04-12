@@ -81,7 +81,7 @@ export function WorkbenchTabs() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-primary bg-primary text-primary-foreground transition-colors hover:brightness-95">
+              <button className="ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-[#ddd7cf] bg-[#fbfaf7] text-primary transition-colors hover:border-[#c9c1b6] hover:bg-white">
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
@@ -97,7 +97,7 @@ export function WorkbenchTabs() {
 
         <div className="flex shrink-0 items-center gap-1.5">
           <button
-            className="relative flex h-9 w-9 items-center justify-center border border-primary bg-primary text-primary-foreground transition-colors hover:brightness-95"
+            className="relative flex h-9 w-9 items-center justify-center border border-[#ddd7cf] bg-[#fbfaf7] text-[#b4372f] transition-colors hover:border-[#c9c1b6] hover:bg-white"
             onClick={() =>
               openDrawer({
                 title: "Notifications",
@@ -113,7 +113,7 @@ export function WorkbenchTabs() {
             aria-label="Open notifications"
           >
             <Bell className="h-3.5 w-3.5" />
-            <span className="absolute right-1 top-1 h-2.5 w-2.5 bg-primary" />
+            <span className="absolute right-1 top-1 h-2 w-2 bg-primary" />
           </button>
           <ThemeToggle />
         </div>
