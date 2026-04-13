@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCheck, ChevronDown, ChevronUp, Clock3, FileStack, Searc
 import { useLocation } from "react-router-dom";
 
 import { Input } from "@/components/ui/input";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { SmallButton, StatusPill, Surface } from "@/components/ubik-primitives";
 import { useShellState, useWorkbenchState } from "@/hooks/use-shell-state";
@@ -192,11 +193,40 @@ function categoryForThread(thread: InboxThread) {
 }
 
 function displayContextTitle(title: string) {
-  if (title === "People and Company") return "People & Company";
+  if (title === "People and Company") return "People";
   if (title === "Account and Project Context") return "Commitments";
-  if (title === "CRM and ERP Context") return "CRM / ERP";
+  if (title === "CRM and ERP Context") return "Context";
   if (title === "Linked Tasks and Workflow") return "Linked Tasks";
+  if (title === "Related Meetings") return "Meetings";
+  if (title === "Attachments and Files") return "Files";
+  if (title === "Similar Past Outcomes") return "Past Outcomes";
   return title;
+}
+
+function compactContextModules(modules: InboxThread["contextModules"]) {
+  const selected = ["People and Company", "Linked Tasks and Workflow"]
+    .map((title) => modules.find((module) => module.title === title))
+    .filter((module): module is InboxThread["contextModules"][number] => Boolean(module));
+
+  return selected.map((module) => {
+    if (module.title === "People and Company") {
+      return {
+        ...module,
+        items: module.items.filter((item) =>
+          ["Primary contact", "Role", "Role identification", "Relationship importance"].includes(item.label),
+        ),
+      };
+    }
+
+    if (module.title === "Linked Tasks and Workflow") {
+      return {
+        ...module,
+        items: module.items.filter((item) => ["Task", "Owner"].includes(item.label)).slice(0, 2),
+      };
+    }
+
+    return module;
+  });
 }
 
 function quickAnalysisBullets(thread: InboxThread) {
@@ -231,20 +261,36 @@ function visibleMessageParagraphs(thread: InboxThread, body: string) {
 }
 
 function ContextSection({ title, items }: { title: string; items: { label: string; value: string }[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleItems = items.slice(0, 4);
+  const singleItemLabel = visibleItems.length === 1 ? visibleItems[0]?.label : null;
+
   return (
-    <Surface className="overflow-hidden border-[#ded9cf] bg-[#fffdfa] shadow-[0_1px_0_rgba(15,23,42,0.02)]">
-      <div className="border-b border-[#ece6dc] px-4 py-3">
-        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{displayContextTitle(title)}</p>
-      </div>
-      <div className="space-y-0">
-        {items.map((item) => (
-          <div key={`${title}-${item.label}`} className="border-b border-[#ece7de] px-4 py-3 last:border-b-0">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
-            <p className="mt-1 text-sm leading-6 text-foreground">{item.value}</p>
-          </div>
-        ))}
-      </div>
-    </Surface>
+    <div className="border-b border-[#e7e0d5] bg-transparent">
+      <button
+        className="flex w-full items-center justify-between gap-3 px-1 py-4 text-left"
+        onClick={() => setExpanded((current) => !current)}
+        type="button"
+        aria-expanded={expanded}
+      >
+        <p className="text-[clamp(14px,1.05vw,16px)] font-medium text-muted-foreground">
+          {displayContextTitle(title)}
+        </p>
+        {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+      </button>
+      {expanded ? (
+        <div className="space-y-3 px-1 pb-4">
+          {visibleItems.map((item) => (
+            <div key={`${title}-${item.label}`}>
+              {singleItemLabel !== item.label ? (
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/75">{item.label}</p>
+              ) : null}
+              <p className="mt-1 text-[14px] leading-6 text-foreground">{item.value}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -293,12 +339,12 @@ function QueueRow({
                   {(thread.priorityBand === "needs_attention" || thread.priority === "Critical") && !active ? (
                     <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
                   ) : null}
-                  <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                    {thread.sender}
-                  </p>
-                  <span className="truncate text-[12px] text-muted-foreground">{thread.company}</span>
+                <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  {thread.sender}
+                </p>
+                  <span className="truncate text-[clamp(11px,1vw,12px)] text-muted-foreground">{thread.company}</span>
                 </div>
-                <p className={`mt-1 line-clamp-2 font-mono text-[13px] leading-6 ${active || thread.priorityBand === "needs_attention" || thread.priority === "Critical" ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>
+                <p className={`mt-1 line-clamp-2 font-mono text-[clamp(12px,1.2vw,13px)] leading-[1.45] ${active || thread.priorityBand === "needs_attention" || thread.priority === "Critical" ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>
                   {thread.subject}
                 </p>
               </div>
@@ -314,7 +360,7 @@ function QueueRow({
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-primary">{categoryForThread(thread)}</span>
             </div>
 
-            <p className="mt-2 line-clamp-2 text-[13px] leading-6 text-muted-foreground">{thread.preview}</p>
+            <p className="mt-2 line-clamp-2 text-[clamp(12px,1.15vw,13px)] leading-[1.45] text-muted-foreground">{thread.preview}</p>
 
             <div className="mt-2 flex items-center justify-between gap-3">
               <div className="flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
@@ -443,81 +489,88 @@ function Workspace({
     );
   }
 
-  const primaryAction = activeThread.actionRecommendations.find((action) => action.kind === "primary");
-  const secondaryActions = activeThread.actionRecommendations.filter((action) => action.kind !== "primary");
+  const rankedActions = activeThread.actionRecommendations.slice(0, 4);
+  const primaryAction = rankedActions[0] ?? null;
+  const secondaryActions = rankedActions.slice(1, 4);
   const latestMessage = activeThread.timeline[0];
   const olderMessages = activeThread.timeline.slice(1);
   const [expandedOlderMessageId, setExpandedOlderMessageId] = useState<string | null>(olderMessages[0]?.id ?? null);
+  const [actionsExpanded, setActionsExpanded] = useState(true);
+  const compactModules = compactContextModules(activeThread.contextModules);
 
   return (
     <div className="space-y-3">
-      <Surface className="overflow-hidden">
-        <div className="border-b border-border px-4 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              {showBackButton ? (
-                <button
-                  className="inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-foreground"
-                  onClick={onBack}
-                  type="button"
-                  aria-label="Back to queue"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-              ) : null}
-              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                {activeThread.sender} · {activeThread.company} · {categoryForThread(activeThread)}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusPill tone={toneForThread(activeThread)}>{priorityBandLabel[activeThread.priorityBand]}</StatusPill>
-              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{latestMessage.time}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-b border-border px-4 py-3.5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-[1.15rem] font-semibold leading-7 text-foreground md:text-[1.25rem]">{activeThread.subject}</h2>
-              <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
-                <span>{activeThread.project}</span>
-                <span>·</span>
-                <span>{activeThread.attachments.length} files</span>
+      <Surface className="flex h-[calc(100vh-13.5rem)] min-h-[38rem] flex-col overflow-hidden">
+        <div className="sticky top-0 z-20 bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                {showBackButton ? (
+                  <button
+                    className="inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-foreground"
+                    onClick={onBack}
+                    type="button"
+                    aria-label="Back to queue"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                ) : null}
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                  {activeThread.sender} · {activeThread.company} · {categoryForThread(activeThread)}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusPill tone={toneForThread(activeThread)}>{priorityBandLabel[activeThread.priorityBand]}</StatusPill>
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{latestMessage.time}</p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="flex items-center justify-end gap-2">
-                <StatusPill tone={activeThread.priority === "Critical" ? "alert" : "default"}>{activeThread.priority}</StatusPill>
-                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Due risk</p>
+          </div>
+
+          <div className="border-b border-border bg-card px-4 py-3.5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[clamp(1rem,1.7vw,1.25rem)] font-semibold leading-[1.3] text-foreground">
+                  {activeThread.subject}
+                </h2>
+                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[clamp(11px,1.1vw,13px)] text-muted-foreground">
+                  <span>{activeThread.project}</span>
+                  <span>·</span>
+                  <span>{activeThread.attachments.length} files</span>
+                </div>
               </div>
-              <p className="mt-1.5 text-[13px] text-primary">{activeThread.dueRisk}</p>
+              <div className="text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <StatusPill tone={activeThread.priority === "Critical" ? "alert" : "default"}>{activeThread.priority}</StatusPill>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Due risk</p>
+                </div>
+                <p className="mt-1.5 text-[clamp(11px,1.05vw,13px)] text-primary">{activeThread.dueRisk}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-0 border-b border-border bg-card md:grid-cols-2 xl:grid-cols-4">
+            <div className="border-b border-border px-4 py-3 md:border-r xl:border-b-0">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Why this matters</p>
+              <p className="mt-2 text-[clamp(11px,1.05vw,13px)] leading-5 text-foreground">{activeThread.whyThisMatters}</p>
+            </div>
+            <div className="border-b border-border px-4 py-3 md:border-b-0 xl:border-r">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">What changed</p>
+              <p className="mt-2 text-[clamp(11px,1.05vw,13px)] leading-5 text-foreground">{activeThread.whatChanged}</p>
+            </div>
+            <div className="border-b border-border px-4 py-3 md:border-r xl:border-b-0">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">What is blocked</p>
+              <p className={`mt-2 text-[clamp(11px,1.05vw,13px)] leading-5 ${summaryTone(activeThread.whatIsBlocked)}`}>{activeThread.whatIsBlocked}</p>
+            </div>
+            <div className="px-4 py-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Recommended next step</p>
+              <p className="mt-2 text-[clamp(11px,1.05vw,13px)] leading-5 text-foreground">{activeThread.nextAction}</p>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-0 border-b border-border md:grid-cols-2 xl:grid-cols-4">
-          <div className="border-b border-border px-4 py-3 md:border-r xl:border-b-0">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Why this matters</p>
-            <p className="mt-2 text-[13px] leading-5 text-foreground">{activeThread.whyThisMatters}</p>
-          </div>
-          <div className="border-b border-border px-4 py-3 md:border-b-0 xl:border-r">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">What changed</p>
-            <p className="mt-2 text-[13px] leading-5 text-foreground">{activeThread.whatChanged}</p>
-          </div>
-          <div className="border-b border-border px-4 py-3 md:border-r xl:border-b-0">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">What is blocked</p>
-            <p className={`mt-2 text-[13px] leading-5 ${summaryTone(activeThread.whatIsBlocked)}`}>{activeThread.whatIsBlocked}</p>
-          </div>
-          <div className="px-4 py-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Recommended next step</p>
-            <p className="mt-2 text-[13px] leading-5 text-foreground">{activeThread.nextAction}</p>
-          </div>
-        </div>
-
-        <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="min-w-0 border-r border-border">
-            <div className="h-[calc(100vh-21.5rem)] min-h-[28rem] overflow-auto">
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_clamp(240px,28%,320px)] gap-0">
+          <div className="min-h-0 min-w-0 border-r border-border">
+            <div className="h-full overflow-y-auto">
               <div className="px-5 py-4">
                 <div className="mb-5 border border-border bg-[#f1f1ef]">
                   <div className="border-b border-border px-4 py-3">
@@ -533,12 +586,6 @@ function Workspace({
                       ))}
                     </ul>
                   </div>
-                </div>
-
-                <div className="max-w-3xl space-y-4 text-[15px] leading-7 text-foreground md:text-[16px] md:leading-8">
-                  {visibleMessageParagraphs(activeThread, latestMessage.body).map((paragraph, index) => (
-                    <p key={`${latestMessage.id}-${index}`}>{paragraph}</p>
-                  ))}
                 </div>
 
                 {latestMessage.attachments?.length ? (
@@ -602,7 +649,7 @@ function Workspace({
                                   <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-foreground">{message.sender}</p>
                                   <p className="text-[12px] text-muted-foreground">{message.time}</p>
                                 </div>
-                                <div className="mt-4 max-w-3xl space-y-3 text-[14px] leading-7 text-foreground">
+                                <div className="mt-4 max-w-3xl space-y-3 text-[clamp(13px,1.1vw,14px)] leading-7 text-foreground">
                                   {message.body.split("\n").filter(Boolean).map((paragraph, index) => (
                                     <p key={`${message.id}-${index}`}>{paragraph}</p>
                                   ))}
@@ -619,58 +666,61 @@ function Workspace({
             </div>
           </div>
 
-          <div className="grid content-start gap-3 bg-[#fcfbf8] p-3">
-            <Surface className="overflow-hidden border-[#ded9cf] bg-[#fffdfa]">
-              <div className="flex items-center justify-between border-b border-[#ece6dc] px-4 py-3">
-                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Actions</p>
+          <div className="grid min-h-0 min-w-0 content-start gap-1 overflow-y-auto bg-white px-4 py-3">
+            <div className="border-b border-[#e7e0d5] bg-transparent">
+              <div className="flex items-center gap-3 px-1 py-4">
                 <button
-                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground"
-                  onClick={onOpenTaskDrawer}
+                  className="flex min-w-0 items-center gap-2 text-left"
+                  onClick={() => setActionsExpanded((current) => !current)}
                   type="button"
+                  aria-expanded={actionsExpanded}
                 >
-                  Assign
+                  <p className="text-[clamp(13px,1vw,15px)] font-medium text-muted-foreground">Actions</p>
+                  {actionsExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                 </button>
               </div>
-              <div className="space-y-2 px-4 py-4">
-                {primaryAction ? (
-                  <button
-                    className="inline-flex w-full items-center justify-center gap-2 border border-primary bg-primary px-3 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-primary-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
-                    onClick={() => onPrimaryAction(primaryAction.key)}
-                    type="button"
-                  >
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    {primaryAction.label}
-                  </button>
-                ) : null}
-                {secondaryActions.map((action) => (
-                  <button
-                    key={action.key}
-                    className="inline-flex w-full items-center justify-center gap-2 border border-[#e5dfd5] bg-white px-3 py-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-foreground"
-                    onClick={() => onSecondaryAction(action.key)}
-                    type="button"
-                  >
-                    {action.label}
-                  </button>
-                ))}
-              </div>
-            </Surface>
+              {actionsExpanded ? (
+                <div className="space-y-2 px-1 pb-4">
+                  {primaryAction ? (
+                    <button
+                      className="inline-flex w-full items-center justify-center gap-2 border border-primary bg-primary px-3 py-3 text-[13px] font-medium text-primary-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                      onClick={() => onPrimaryAction(primaryAction.key)}
+                      type="button"
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      {primaryAction.label}
+                    </button>
+                  ) : null}
+                  {secondaryActions.map((action) => (
+                    <button
+                      key={action.key}
+                      className="inline-flex w-full items-center justify-center gap-2 border border-border bg-white px-3 py-2.5 text-[13px] font-medium text-foreground"
+                      onClick={() => onSecondaryAction(action.key)}
+                      type="button"
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
 
-            {activeThread.contextModules.map((module) => (
+            {compactModules.map((module) => (
               <ContextSection key={module.id} title={module.title} items={module.items} />
             ))}
 
-            <Surface className="overflow-hidden border-[#ded9cf] bg-[#fffdfa]">
-              <div className="flex items-center justify-between border-b border-[#ece6dc] px-4 py-3">
+            <div className="border-b border-[#e7e0d5] bg-transparent">
+              <div className="flex items-center justify-between px-1 py-4">
                 <button
-                  className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground"
+                  className="inline-flex min-w-0 items-center gap-2 text-[clamp(13px,1vw,15px)] font-medium text-muted-foreground"
                   onClick={onToggleProvenance}
                   type="button"
                 >
                   Provenance
-                  {provenanceExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {provenanceExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                 </button>
                 <button
-                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground"
+                  className="text-[12px] font-medium text-muted-foreground hover:text-foreground"
                   onClick={onOpenProvenanceDrawer}
                   type="button"
                 >
@@ -678,20 +728,16 @@ function Workspace({
                 </button>
               </div>
               {provenanceExpanded ? (
-                <div className="space-y-0">
-                  {activeThread.provenance.map((item) => (
-                    <div key={`${item.label}-${item.value}`} className="border-b border-border px-4 py-3 last:border-b-0">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
-                      <p className="mt-1 text-sm leading-6 text-foreground">{item.value}</p>
+                <div className="space-y-3 px-1 pb-4">
+                  {activeThread.provenance.slice(0, 2).map((item) => (
+                    <div key={`${item.label}-${item.value}`}>
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
+                      <p className="mt-1 text-[14px] leading-6 text-foreground">{item.value}</p>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="px-4 py-4 text-sm leading-6 text-muted-foreground">
-                  Keep recommendation sources inspectable without turning the reading pane into a workflow wall.
-                </p>
-              )}
-            </Surface>
+              ) : null}
+            </div>
           </div>
         </div>
       </Surface>
@@ -1047,8 +1093,14 @@ export default function Inbox() {
           </div>
         </div>
 
-        <div className="grid gap-3 xl:grid-cols-[332px_minmax(0,1fr)]">
-          <Surface className="overflow-hidden xl:h-[calc(100vh-13.5rem)]">
+        <div className="h-[calc(100vh-13.5rem)] min-h-[38rem] overflow-hidden">
+          <ResizablePanelGroup
+            direction="horizontal"
+            autoSaveId="inbox-split-layout"
+            className="h-full w-full gap-0"
+          >
+            <ResizablePanel defaultSize={26} minSize={18} maxSize={42} className="min-w-0">
+              <Surface className="h-full overflow-hidden">
             {queueAlert ? (
               <div className="border-b border-border px-4 py-4">
                 <div className="border border-primary px-3 py-3" role="alert">
@@ -1074,7 +1126,7 @@ export default function Inbox() {
             ) : null}
 
             {scenario !== "loading" && filteredThreads.length ? (
-              <div className="h-full overflow-auto">
+              <div className="h-full overflow-y-auto">
                 {filteredThreads.map((thread) => (
                   <div key={thread.id}>
                     <QueueRow
@@ -1094,26 +1146,33 @@ export default function Inbox() {
                 ))}
               </div>
             ) : null}
-          </Surface>
+              </Surface>
+            </ResizablePanel>
 
-          {!isMobile
-            ? scenario === "loading"
-              ? <WorkspaceSkeleton />
-              : (
-                <Workspace
-                  activeThread={activeThread}
-                  provenanceExpanded={provenanceExpanded}
-                  onToggleProvenance={() => setProvenanceExpanded(!provenanceExpanded)}
-                  onPrimaryAction={(key) => activeThread && handleAction(activeThread, key)}
-                  onSecondaryAction={(key) => activeThread && handleAction(activeThread, key)}
-                  onAnalyzeAttachment={(attachment) => activeThread && handleOpenAttachment(activeThread, attachment)}
-                  onOpenTaskDrawer={() => activeThread && openTaskDrawer(activeThread)}
-                  onOpenProvenanceDrawer={() => activeThread && openProvenanceDrawer(activeThread)}
-                  onBack={() => setMobileWorkspaceOpen(false)}
-                  showBackButton={false}
-                />
-              )
-            : null}
+            <ResizableHandle withHandle className="bg-[#ddd6c8]" />
+
+            <ResizablePanel defaultSize={74} minSize={45} className="min-w-0">
+
+              {!isMobile
+                ? scenario === "loading"
+                  ? <WorkspaceSkeleton />
+                  : (
+                    <Workspace
+                      activeThread={activeThread}
+                      provenanceExpanded={provenanceExpanded}
+                      onToggleProvenance={() => setProvenanceExpanded(!provenanceExpanded)}
+                      onPrimaryAction={(key) => activeThread && handleAction(activeThread, key)}
+                      onSecondaryAction={(key) => activeThread && handleAction(activeThread, key)}
+                      onAnalyzeAttachment={(attachment) => activeThread && handleOpenAttachment(activeThread, attachment)}
+                      onOpenTaskDrawer={() => activeThread && openTaskDrawer(activeThread)}
+                      onOpenProvenanceDrawer={() => activeThread && openProvenanceDrawer(activeThread)}
+                      onBack={() => setMobileWorkspaceOpen(false)}
+                      showBackButton={false}
+                    />
+                  )
+                : null}
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </div>
 
         <Sheet open={isMobile && mobileWorkspaceOpen && !!activeThread} onOpenChange={setMobileWorkspaceOpen}>
