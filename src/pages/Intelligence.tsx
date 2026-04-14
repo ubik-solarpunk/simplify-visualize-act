@@ -1,12 +1,13 @@
 import { Radar } from "lucide-react";
 
+import { PageContainer } from "@/components/page-container";
 import { SectionHeading, StatusPill, Surface } from "@/components/ubik-primitives";
 import { intelligenceRecords } from "@/lib/ubik-data";
 
 export default function Intelligence() {
   return (
     <div className="px-4 py-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <PageContainer className="space-y-6">
         <SectionHeading
           eyebrow="Monitoring"
           title="Intelligence keeps research, watchlists, and saved reports readable."
@@ -26,7 +27,7 @@ export default function Intelligence() {
             </Surface>
           ))}
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

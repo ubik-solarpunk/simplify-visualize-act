@@ -15,6 +15,8 @@ const KNOW_ANYTHING_DEFAULTS = {
   attachments: [] as string[],
   connectorScope: null as string | null,
 };
+const HOME_PATH = "/home";
+const CHAT_PATH = "/chat";
 
 function makeTabId(routeKey: string) {
   tabSequence += 1;
@@ -29,14 +31,14 @@ function buildRouteTab(pathname: string): WorkbenchTab {
     routeKey: route?.key ?? "tab",
     title: route?.title ?? "Workspace",
     path: pathname,
-    pinned: pathname === "/",
-    closable: pathname !== "/",
+    pinned: pathname === HOME_PATH,
+    closable: pathname !== HOME_PATH,
   };
 }
 
 function buildTemporaryKnowAnythingTab(): WorkbenchTab {
   return {
-    ...buildRouteTab("/"),
+    ...buildRouteTab(CHAT_PATH),
     title: "Temp Chat",
     pinned: false,
     closable: true,
@@ -58,8 +60,8 @@ function buildTabFromRoute(pathname: string, fallbackId: string): WorkbenchTab {
     routeKey: route?.key ?? "tab",
     title: route?.title ?? "Workspace",
     path: pathname,
-    pinned: pathname === "/",
-    closable: pathname !== "/",
+    pinned: pathname === HOME_PATH,
+    closable: pathname !== HOME_PATH,
   };
 }
 
@@ -77,7 +79,7 @@ function getKnowAnythingPageState(pageState: ShellPageStateMap, tabId: string) {
 }
 
 function isKnowAnythingTabPristine(tab: WorkbenchTab | undefined, pageState: ShellPageStateMap) {
-  if (!tab || tab.path !== "/") return false;
+  if (!tab || tab.path !== CHAT_PATH) return false;
 
   const chatState = getKnowAnythingPageState(pageState, tab.id);
   return (
@@ -171,7 +173,7 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     }
 
     const nextTab: WorkbenchTab =
-      pathname === "/"
+      pathname === HOME_PATH
         ? {
             ...buildRouteTab(pathname),
             pinned: false,
@@ -196,13 +198,13 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     if (isKnowAnythingTabPristine(activeTab, pageState)) {
       setPageStateMap((current) => resetKnowAnythingPageState(current, activeTab.id));
       navigate({
-        pathname: "/",
+        pathname: CHAT_PATH,
         search: `tab=${activeTab.id}`,
       });
       return activeTab.id;
     }
 
-    const nextTabId = createTab("/");
+    const nextTabId = createTab(CHAT_PATH);
     if (!nextTabId) return null;
 
     setPageStateMap((current) => resetKnowAnythingPageState(current, nextTabId));
@@ -223,7 +225,7 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     setTabs(nextTabs);
     setPageStateMap((current) => resetKnowAnythingPageState(current, nextTab.id));
     navigate({
-      pathname: "/",
+      pathname: CHAT_PATH,
       search: `tab=${nextTab.id}`,
     });
     return nextTab.id;
@@ -249,8 +251,8 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
 
     const nextTab = {
       ...buildTabFromRoute(pathname, activeTab.id),
-      pinned: activeTab.id === "chat-home" && pathname === "/",
-      closable: !(activeTab.id === "chat-home" && pathname === "/"),
+      pinned: activeTab.id === "home-main" && pathname === HOME_PATH,
+      closable: !(activeTab.id === "home-main" && pathname === HOME_PATH),
     };
     setTabs((current) => current.map((item) => (item.id === activeTab.id ? nextTab : item)));
     navigate({

@@ -1,12 +1,13 @@
 import { Bot, CirclePause, ShieldCheck, Sparkles } from "lucide-react";
 
+import { PageContainer } from "@/components/page-container";
 import { SectionHeading, StatusPill, Surface } from "@/components/ubik-primitives";
 import { agents } from "@/lib/ubik-data";
 
 export default function Agents() {
   return (
     <div className="px-4 py-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <PageContainer className="space-y-6">
         <SectionHeading
           eyebrow="Specialists"
           title="Agents are specialist operators, not the primary product frame."
@@ -51,7 +52,7 @@ export default function Agents() {
             <div className="border border-border bg-background p-4 text-sm text-muted-foreground">Execution detail belongs in workflow traces and approval surfaces, not decorative canvases.</div>
           </div>
         </Surface>
-      </div>
+      </PageContainer>
     </div>
   );
 }

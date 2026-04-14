@@ -39,7 +39,7 @@ export function StatusPill({
   tone = "default",
   children,
 }: {
-  tone?: "default" | "alert" | "success" | "muted";
+  tone?: "default" | "alert" | "success" | "muted" | "domain" | "intent";
   children: React.ReactNode;
 }) {
   const toneClass = {
@@ -47,6 +47,8 @@ export function StatusPill({
     alert: "border-primary text-primary",
     success: "border-foreground/40 text-foreground",
     muted: "border-border text-muted-foreground",
+    domain: "border-primary text-primary",
+    intent: "border-foreground text-foreground",
   }[tone];
 
   return (

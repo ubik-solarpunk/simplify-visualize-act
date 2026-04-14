@@ -1,5 +1,6 @@
 import { CheckCheck, FileSearch, XCircle } from "lucide-react";
 
+import { PageContainer } from "@/components/page-container";
 import { SectionHeading, SmallButton, StatusPill, Surface } from "@/components/ubik-primitives";
 import { useShellState, useWorkbenchState } from "@/hooks/use-shell-state";
 import { approvals } from "@/lib/ubik-data";
@@ -15,7 +16,7 @@ export default function Approvals() {
 
   return (
     <div className="px-4 py-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <PageContainer className="space-y-6">
         <SectionHeading
           eyebrow="Human In The Loop"
           title="Approvals keep recommendations direct, auditable, and easy to inspect."
@@ -114,7 +115,7 @@ export default function Approvals() {
             </Surface>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

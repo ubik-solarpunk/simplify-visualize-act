@@ -1,113 +1,123 @@
-import { CalendarClock, Users } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowUpRight, Mic, Pause, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-import { SectionHeading, SmallButton, StatusPill, Surface } from "@/components/ubik-primitives";
-import { useShellState, useWorkbenchState } from "@/hooks/use-shell-state";
+import { PageContainer } from "@/components/page-container";
+import { Separator } from "@/components/ui/separator";
+import { SmallButton, StatusPill, Surface } from "@/components/ubik-primitives";
+import { useWorkbenchState } from "@/hooks/use-shell-state";
 import { meetings } from "@/lib/ubik-data";
 
+type MeetingFolder = "All" | "Compliance" | "Customer Calls" | "Standups";
+type RecordingState = "idle" | "recording" | "paused";
+
+const folderFilters: MeetingFolder[] = ["All", "Compliance", "Customer Calls", "Standups"];
+
 export default function Meetings() {
-  const { openDrawer } = useShellState();
-  const [selectedMeetingId, setSelectedMeetingId] = useWorkbenchState<string>("meeting-id", meetings[0].id);
-  const meeting = meetings.find((item) => item.id === selectedMeetingId) ?? meetings[0];
+  const navigate = useNavigate();
+  const [folderFilter, setFolderFilter] = useWorkbenchState<MeetingFolder>("meeting-folder-filter", "All");
+  const [recordingState, setRecordingState] = useWorkbenchState<RecordingState>("meeting-recording-state", "idle");
+  const [quickNotesByMeeting, setQuickNotesByMeeting] = useWorkbenchState<Record<string, string[]>>("meeting-quick-notes", {});
+
+  const filteredMeetings = useMemo(
+    () => meetings.filter((item) => folderFilter === "All" || item.folder === folderFilter),
+    [folderFilter],
+  );
+
+  const todayMeetings = filteredMeetings.filter((item) => item.dayGroup === "Today");
+
+  const toggleRecording = () => {
+    if (recordingState === "idle") {
+      setRecordingState("recording");
+      return;
+    }
+    if (recordingState === "recording") {
+      setRecordingState("paused");
+      return;
+    }
+    setRecordingState("recording");
+  };
+
+  const addQuickNote = (meetingId: string) => {
+    const notes = quickNotesByMeeting[meetingId] ?? [];
+    const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    setQuickNotesByMeeting({
+      ...quickNotesByMeeting,
+      [meetingId]: [`Quick note ${stamp}`, ...notes].slice(0, 5),
+    });
+  };
 
   return (
     <div className="px-4 py-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <SectionHeading
-          eyebrow="Continuity"
-          title="Meetings keep prep, decisions, and follow-through in one operational surface."
-          description="Use a left list, a central summary, and a supporting action panel so operators can move from meeting context straight back into execution."
-        />
-
-        <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_280px]">
-          <Surface className="overflow-hidden">
-            <div className="border-b border-border px-4 py-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Meeting List</p>
-            </div>
-            <div className="divide-y divide-border">
-              {meetings.map((item) => (
-                <button key={item.id} className={`w-full px-4 py-4 text-left ${item.id === meeting.id ? "bg-background" : "bg-card"}`} onClick={() => setSelectedMeetingId(item.id)}>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{item.stage}</p>
-                  <p className="mt-2 font-mono text-sm">{item.title}</p>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.time}</p>
-                </button>
+      <PageContainer className="space-y-3">
+        <Surface className="bg-background p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {folderFilters.map((folder) => (
+                <SmallButton key={folder} active={folderFilter === folder} onClick={() => setFolderFilter(folder)}>
+                  {folder}
+                </SmallButton>
               ))}
             </div>
-          </Surface>
-
-          <Surface className="p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{meeting.time}</p>
-                <h2 className="mt-2 font-mono text-2xl font-semibold">{meeting.title}</h2>
-                <p className="mt-3 text-sm text-muted-foreground">{meeting.summary}</p>
-              </div>
-              <StatusPill tone={meeting.stage === "Upcoming" ? "alert" : "success"}>{meeting.stage}</StatusPill>
+            <div className="flex items-center gap-2">
+              <SmallButton active={recordingState === "recording"} onClick={toggleRecording}>
+                {recordingState === "recording" ? (
+                  <Pause className="mr-2 h-3.5 w-3.5" />
+                ) : (
+                  <Mic className="mr-2 h-3.5 w-3.5" />
+                )}
+                {recordingState === "idle" ? "Start recording" : recordingState === "recording" ? "Pause" : "Resume"}
+              </SmallButton>
+              <SmallButton onClick={() => addQuickNote(todayMeetings[0]?.id ?? meetings[0].id)}>
+                <Plus className="mr-2 h-3.5 w-3.5" /> Quick note
+              </SmallButton>
             </div>
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
-              <div className="border border-border p-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Agenda</p>
-                <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                  {meeting.agenda.map((item) => (
-                    <p key={item}>{item}</p>
-                  ))}
-                </div>
-              </div>
-              <div className="border border-border p-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Decisions</p>
-                <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                  {meeting.decisions.map((item) => (
-                    <p key={item}>{item}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Surface>
-
-          <div className="space-y-4">
-            <Surface className="p-5">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Participants</p>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {meeting.participants.map((item) => (
-                  <StatusPill key={item}>{item}</StatusPill>
-                ))}
-              </div>
-            </Surface>
-            <Surface className="p-5">
-              <div className="flex items-center gap-2">
-                <CalendarClock className="h-4 w-4 text-primary" />
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Action Items</p>
-              </div>
-              <div className="mt-4 space-y-3">
-                {meeting.actionItems.map((item) => (
-                  <p key={item} className="text-sm text-muted-foreground">{item}</p>
-                ))}
-              </div>
-              <div className="mt-4">
-                <SmallButton
-                  onClick={() =>
-                    openDrawer({
-                      title: meeting.title,
-                      eyebrow: "Meeting detail",
-                      description: "Right-side inspection should hold prep, provenance, and follow-up context without changing the shell.",
-                      metadata: [
-                        { label: "Owner", value: meeting.owner },
-                        { label: "Stage", value: meeting.stage },
-                      ],
-                      timeline: meeting.actionItems,
-                    })
-                  }
-                >
-                  Open right panel
-                </SmallButton>
-              </div>
-            </Surface>
           </div>
-        </div>
-      </div>
+        </Surface>
+
+        <Surface className="bg-background p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-foreground">Upcoming Today</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Select card for full workspace</p>
+          </div>
+
+          <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+            {todayMeetings.map((item) => (
+              <article key={item.id} className="min-w-[360px] border border-border/80 bg-background p-3">
+                <button className="w-full text-left" onClick={() => navigate(`/meetings/${item.id}`)} type="button">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="line-clamp-1 text-lg text-foreground">{item.title}</p>
+                    <StatusPill tone={item.stage === "Upcoming" ? "alert" : "success"}>{item.stage}</StatusPill>
+                  </div>
+                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.time}</p>
+                  <p className="mt-1 line-clamp-1 text-sm text-foreground">{item.summary}</p>
+                </button>
+
+                <Separator className="my-2.5" />
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {item.folder ? <StatusPill tone="muted">{item.folder}</StatusPill> : null}
+                  {item.platform ? <StatusPill tone="muted">{item.platform}</StatusPill> : null}
+                  {item.linkedClient ? <StatusPill tone="muted">{item.linkedClient}</StatusPill> : null}
+                </div>
+
+                <div className="mt-3 flex items-center gap-2">
+                  <SmallButton onClick={() => navigate(`/meetings/${item.id}`)}>
+                    Join now <ArrowUpRight className="ml-2 h-3.5 w-3.5" />
+                  </SmallButton>
+                  <SmallButton onClick={() => addQuickNote(item.id)}>
+                    <Plus className="mr-2 h-3.5 w-3.5" /> Quick note
+                  </SmallButton>
+                </div>
+
+                {(quickNotesByMeeting[item.id] ?? []).length ? (
+                  <p className="mt-2 text-sm text-muted-foreground">{(quickNotesByMeeting[item.id] ?? [])[0]}</p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </Surface>
+      </PageContainer>
     </div>
   );
 }

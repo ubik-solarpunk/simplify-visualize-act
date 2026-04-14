@@ -1,0 +1,7 @@
+interface:
+  display_name: "Parallel Orchestrator"
+  short_description: "Standardize parallel Codex delegation with compact summaries"
+  default_prompt: "Use parallel Codex agents for this task, keep the main thread on the critical path, and return only compact summaries with file references."
+
+policy:
+  allow_implicit_invocation: false

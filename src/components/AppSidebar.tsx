@@ -7,6 +7,8 @@ import {
   ChevronRight,
   FolderKanban,
   HelpCircle,
+  History,
+  Home,
   Inbox,
   LayoutDashboard,
   Pin,
@@ -38,6 +40,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const iconMap: Record<string, LucideIcon> = {
+  home: Home,
   chat: LayoutDashboard,
   inbox: Inbox,
   meetings: Calendar,
@@ -83,7 +86,7 @@ function SectionToggle({
   return (
     <div className="flex min-h-[40px] items-center justify-between gap-4 px-4 pt-4">
       <button
-        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/55"
+        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/75"
         onClick={onClick}
       >
         <span>{label}</span>
@@ -96,15 +99,20 @@ function SectionToggle({
 
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
-  const { openDrawer, navigateCurrentTab, setCommandPaletteOpen } = useShellState();
+  const { navigateCurrentTab, setCommandPaletteOpen } = useShellState();
   const location = useLocation();
   const collapsed = state === "collapsed";
-  const [recentSearch, setRecentSearch] = useWorkbenchState("recent-search", "");
+  const [sidebarSearch, setSidebarSearch] = useWorkbenchState("sidebar-search", "");
   const [sectionState, setSectionState] = useState({
     navigate: true,
     playbooks: true,
     pinned: true,
-    recents: true,
+    history: true,
+    history_chat: true,
+    history_meeting: true,
+    history_project: true,
+    history_workflow: true,
+    history_file: true,
   });
 
   const groupedNav = useMemo(
@@ -120,9 +128,20 @@ export function AppSidebar() {
     setSectionState((current) => ({ ...current, [key]: !current[key] }));
   };
 
-  const filteredRecents = recentItems.filter((item) =>
-    item.title.toLowerCase().includes(recentSearch.toLowerCase()),
-  );
+  const navFilter = sidebarSearch.toLowerCase();
+  const filteredGroupedNav = {
+    navigate: groupedNav.navigate.filter((item) => item.title.toLowerCase().includes(navFilter)),
+    playbooks: groupedNav.playbooks.filter((item) => item.title.toLowerCase().includes(navFilter)),
+  };
+
+  const filteredRecents = recentItems.filter((item) => item.title.toLowerCase().includes(navFilter));
+  const historyByType = {
+    chat: filteredRecents.filter((item) => item.type === "chat"),
+    meeting: filteredRecents.filter((item) => item.type === "meeting"),
+    project: filteredRecents.filter((item) => item.type === "project"),
+    workflow: filteredRecents.filter((item) => item.type === "workflow"),
+    file: filteredRecents.filter((item) => item.type === "file"),
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -157,8 +176,8 @@ export function AppSidebar() {
             </button>
           </div>
         ) : (
-          <div className="px-6 py-4">
-              <button
+          <div className="space-y-3 px-6 py-4">
+            <button
               className="flex h-11 w-full items-center gap-2 border border-sidebar-border bg-sidebar-primary px-3 text-left font-mono text-[11.5px] uppercase tracking-[0.16em] text-sidebar-primary-foreground"
               type="button"
               onClick={() => setCommandPaletteOpen(true)}
@@ -170,6 +189,15 @@ export function AppSidebar() {
                 ⌘K
               </kbd>
             </button>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-foreground/65" />
+              <input
+                value={sidebarSearch}
+                onChange={(event) => setSidebarSearch(event.target.value)}
+                placeholder="Search"
+                className="h-10 w-full border border-sidebar-border bg-transparent pl-9 pr-3 font-mono text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground outline-none placeholder:text-sidebar-foreground/55 focus:border-sidebar-foreground/35"
+              />
+            </div>
           </div>
         )}
 
@@ -183,9 +211,9 @@ export function AppSidebar() {
             />
             {(sectionState[sectionKey] || collapsed) && (
               <SidebarMenu className={collapsed ? "items-center px-0 py-3" : "px-3 py-3"}>
-                {groupedNav[sectionKey].map((item) => {
+                {filteredGroupedNav[sectionKey].map((item) => {
                   const Icon = iconMap[item.key];
-                  const active = item.path === "/" ? location.pathname === "/" : location.pathname.startsWith(item.path);
+                  const active = location.pathname.startsWith(item.path);
 
                   return (
                     <SidebarMenuItem key={item.key}>
@@ -196,16 +224,15 @@ export function AppSidebar() {
                         className={
                           collapsed
                             ? `mx-auto h-10 w-10 justify-center rounded-none px-0 ${
-                                active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/80"
+                                active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/90"
                               }`
                             : `h-11 rounded-none px-4 font-mono text-[10.5px] uppercase tracking-[0.14em] ${
-                                active ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground/80"
+                                active ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground/92"
                               }`
                         }
                       >
                         <NavLink
                           to={item.path}
-                          end={item.path === "/"}
                           onClick={(event) => {
                             event.preventDefault();
                             navigateCurrentTab(item.path);
@@ -237,19 +264,18 @@ export function AppSidebar() {
                   const Icon = pinnedTypeIcon[item.type];
 
                   return (
-                    <button key={item.id} className="flex w-full items-start gap-2 border border-transparent px-2 py-2 text-left text-sidebar-foreground/78 hover:border-sidebar-border hover:bg-sidebar-accent">
+                    <button key={item.id} className="flex w-full items-start gap-2 border border-transparent px-2 py-2 text-left text-sidebar-foreground/88 hover:border-sidebar-border hover:bg-sidebar-accent">
                       <Pin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <Icon className="h-3.5 w-3.5 shrink-0" />
                           <p className="truncate font-mono text-[9px] uppercase tracking-[0.14em]">{item.title}</p>
                         </div>
-                        <p className="mt-1 text-[11px] text-sidebar-foreground/50">{item.subtitle}</p>
+                        <p className="mt-1 text-[11px] text-sidebar-foreground/75">{item.subtitle}</p>
                       </div>
                     </button>
                   );
                 })}
-                <button className="px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-sidebar-foreground/50">More</button>
               </div>
             ) : null}
           </div>
@@ -260,33 +286,42 @@ export function AppSidebar() {
         {!collapsed ? (
           <div className="pb-4">
             <SectionToggle
-              label="Recents"
-              open={sectionState.recents}
-              onClick={() => toggleSection("recents")}
-              extra={
-                <div className="relative shrink-0">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-foreground/45" />
-                  <input
-                    value={recentSearch}
-                    onChange={(event) => setRecentSearch(event.target.value)}
-                    placeholder="Search"
-                    className="h-9 w-[148px] border border-sidebar-border bg-transparent pl-9 pr-3 font-mono text-[9px] uppercase tracking-[0.12em] text-sidebar-foreground outline-none placeholder:text-sidebar-foreground/45 focus:border-sidebar-foreground/35"
-                  />
-                </div>
-              }
+              label="History"
+              open={sectionState.history}
+              onClick={() => toggleSection("history")}
+              extra={<History className="h-3.5 w-3.5 text-sidebar-foreground/75" />}
             />
-            {sectionState.recents ? (
-              <div className="space-y-1 px-4 pt-2">
-                {filteredRecents.slice(0, 6).map((item) => (
-                  <button key={item.id} className="grid w-full grid-cols-[minmax(0,1fr)_82px] gap-3 border border-transparent px-2 py-2.5 text-left text-sidebar-foreground/75 hover:border-sidebar-border hover:bg-sidebar-accent">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.14em] leading-7">{item.title}</span>
-                    <span className="text-right text-[11px] text-sidebar-foreground/45">{item.time}</span>
-                  </button>
-                ))}
-                {!filteredRecents.length ? (
-                  <p className="px-2 py-2 text-sm text-sidebar-foreground/45">No matching chats.</p>
-                ) : null}
-                <button className="px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-sidebar-foreground/50">More</button>
+            {sectionState.history ? (
+              <div className="space-y-2 px-4 pt-2">
+                {(Object.keys(historyByType) as Array<keyof typeof historyByType>).map((typeKey) => {
+                  const sectionKey = `history_${typeKey}` as keyof typeof sectionState;
+                  const items = historyByType[typeKey];
+                  if (!items.length) return null;
+
+                  return (
+                    <div key={typeKey}>
+                      <button
+                        className="flex w-full items-center justify-between border border-sidebar-border px-2 py-2 font-mono text-[9px] uppercase tracking-[0.14em] text-sidebar-foreground/85"
+                        onClick={() => toggleSection(sectionKey)}
+                        type="button"
+                      >
+                        <span>{typeKey}</span>
+                        {sectionState[sectionKey] ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                      </button>
+                      {sectionState[sectionKey] ? (
+                        <div className="mt-1 space-y-1">
+                          {items.map((item) => (
+                            <button key={item.id} className="grid w-full grid-cols-[minmax(0,1fr)_82px] gap-3 border border-transparent px-2 py-2 text-left text-sidebar-foreground/82 hover:border-sidebar-border hover:bg-sidebar-accent">
+                              <span className="font-mono text-[9px] uppercase tracking-[0.14em] leading-6">{item.title}</span>
+                              <span className="text-right text-[11px] text-sidebar-foreground/75">{item.time}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+                {!filteredRecents.length ? <p className="px-2 py-2 text-sm text-sidebar-foreground/75">No matching history.</p> : null}
               </div>
             ) : null}
           </div>
@@ -308,9 +343,9 @@ export function AppSidebar() {
                   className={
                     collapsed
                       ? `mx-auto h-10 w-10 justify-center rounded-none px-0 ${
-                          active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/78"
+                          active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/90"
                         }`
-                      : "h-11 rounded-none px-4 font-mono text-[9.5px] uppercase tracking-[0.14em] text-sidebar-foreground/78"
+                      : "h-11 rounded-none px-4 font-mono text-[9.5px] uppercase tracking-[0.14em] text-sidebar-foreground/92"
                   }
                 >
                   <NavLink
@@ -336,17 +371,27 @@ export function AppSidebar() {
             }`}>
               <span className="flex h-10 w-10 items-center justify-center border border-sidebar-border font-mono text-[9.5px] uppercase tracking-[0.12em]">HR</span>
               {!collapsed ? (
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-mono text-[9.5px] uppercase tracking-[0.12em]">Hemanth Rao</p>
-                  <p className="mt-1 text-[11px] text-sidebar-foreground/45">Business · Prod · v1.0.4</p>
-                </div>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-mono text-[10px] uppercase tracking-[0.14em]">Hemanth Rao</span>
+                  <span className="block truncate text-[11px] text-sidebar-foreground/75">Operator</span>
+                </span>
               ) : null}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="end" className="w-48 font-mono text-[11px] uppercase tracking-[0.14em]">
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Environment</DropdownMenuItem>
-            <DropdownMenuItem>Sign Out</DropdownMenuItem>
+          <DropdownMenuContent
+            align={collapsed ? "center" : "start"}
+            side={collapsed ? "right" : "top"}
+            className="w-52 border border-border bg-card"
+            style={
+              {
+                "--radix-dropdown-menu-content-transform-origin": "top left",
+              } as CSSProperties
+            }
+          >
+            <DropdownMenuItem className="font-mono text-[11px] uppercase tracking-[0.12em]" onClick={() => navigateCurrentTab("/settings")}>
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem className="font-mono text-[11px] uppercase tracking-[0.12em]">Sign out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>

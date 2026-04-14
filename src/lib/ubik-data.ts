@@ -1,7 +1,9 @@
 import type {
+  ActivityFeedItem,
   AgentRecord,
   ApprovalItem,
   ArchiveRecord,
+  ContactCard,
   HelpResource,
   InboxThread,
   IntelligenceRecord,
@@ -15,6 +17,7 @@ import type {
   SettingsSection,
   SignalItem,
   StarterAction,
+  ProjectPreset,
   WorkbenchTab,
   WorkflowDefinition,
   WorkflowRun,
@@ -22,9 +25,16 @@ import type {
 
 export const routeMetas: RouteMeta[] = [
   {
+    key: "home",
+    title: "Home",
+    path: "/home",
+    description: "Daily operating brief with widgets, actions, and execution signals.",
+    actions: [{ label: "Refresh", kind: "secondary" }],
+  },
+  {
     key: "chat",
     title: "Know Anything",
-    path: "/",
+    path: "/chat",
     description: "Ask across organization, inbox, meetings, projects or internet, when you need them.",
     actions: [{ label: "New Thread", kind: "primary" }, { label: "Share", kind: "secondary" }],
   },
@@ -101,7 +111,8 @@ export const routeMetas: RouteMeta[] = [
 ];
 
 export const navigationItems: NavigationItem[] = [
-  { key: "chat", title: "Know Anything", path: "/", section: "navigate" },
+  { key: "home", title: "Home", path: "/home", section: "navigate" },
+  { key: "chat", title: "Know Anything", path: "/chat", section: "navigate" },
   { key: "inbox", title: "Inbox", path: "/inbox", section: "navigate", badge: "12" },
   { key: "meetings", title: "Meetings", path: "/meetings", section: "navigate" },
   { key: "projects", title: "Projects", path: "/projects", section: "navigate" },
@@ -115,14 +126,15 @@ export const navigationItems: NavigationItem[] = [
 ];
 
 export const initialWorkbenchTabs: WorkbenchTab[] = [
-  { id: "chat-home", routeKey: "chat", title: "Know Anything", path: "/", pinned: true, closable: false },
+  { id: "home-main", routeKey: "home", title: "Home", path: "/home", pinned: true, closable: false },
+  { id: "chat-main", routeKey: "chat", title: "Know Anything", path: "/chat", pinned: true, closable: true },
   { id: "inbox-main", routeKey: "inbox", title: "Inbox", path: "/inbox", pinned: true, closable: true },
   { id: "meetings-main", routeKey: "meetings", title: "Meetings", path: "/meetings", pinned: true, closable: true },
   { id: "projects-main", routeKey: "projects", title: "Projects", path: "/projects", pinned: true, closable: true },
 ];
 
 export const workbenchLauncherRoutes = routeMetas.filter((route) =>
-  ["/", "/inbox", "/meetings", "/projects", "/intelligence", "/approvals"].includes(route.path),
+  ["/home", "/chat", "/inbox", "/meetings", "/projects", "/intelligence", "/approvals"].includes(route.path),
 );
 
 export const pinnedItems: PinnedItem[] = [
@@ -157,6 +169,13 @@ export const starterActions: StarterAction[] = [
   { id: "start-2", title: "Continue project thread", description: "Reopen the last project conversation with linked files and approvals." },
   { id: "start-3", title: "Review pending approvals", description: "Open the human review queue with recommendations and provenance." },
   { id: "start-4", title: "Start market research", description: "Create a fresh research thread with saved monitors attached." },
+];
+
+export const askAnythingPrompts = [
+  "Draft a customer update using Inbox + cargo ETA shifts + latest meeting decisions.",
+  "Build a supplier follow-up plan from compliance expiry items, then prepare approval-ready drafts.",
+  "Compare last pricing bids by SKU, summarize margin impact, and propose next negotiation steps.",
+  "Turn today's meetings + inbox into a prioritized execution checklist with owners and due dates.",
 ];
 
 export const chatSignals: SignalItem[] = [
@@ -207,7 +226,12 @@ export const inboxThreads: InboxThread[] = [
       "Reference: Contract MR-Q2 rev 3",
     ],
     attachments: ["Contract redline.pdf", "Rate summary.xlsx"],
+    domainTag: "Commercial",
+    intentTag: "Approval",
+    branchGroupId: "q2-rate-confirmation",
+    branchCount: 3,
     approvalRequired: true,
+    isUnread: true,
   },
   {
     id: "thread-2",
@@ -227,6 +251,11 @@ export const inboxThreads: InboxThread[] = [
       "Meeting note: Logistics sync from yesterday",
     ],
     attachments: ["Port status note"],
+    domainTag: "Logistics",
+    intentTag: "Follow-up",
+    branchGroupId: "rotterdam-delay",
+    branchCount: 2,
+    isUnread: true,
   },
   {
     id: "thread-3",
@@ -246,7 +275,12 @@ export const inboxThreads: InboxThread[] = [
       "Linked project: Supplier Compliance Audit",
     ],
     attachments: ["HACCP renewal screenshot"],
+    domainTag: "Compliance",
+    intentTag: "Follow-up",
+    branchGroupId: "supplier-haccp",
+    branchCount: 1,
     approvalRequired: true,
+    isUnread: false,
   },
   {
     id: "thread-4",
@@ -266,6 +300,11 @@ export const inboxThreads: InboxThread[] = [
       "Source systems: ERP, supplier feeds",
     ],
     attachments: ["pricing-brief.html"],
+    domainTag: "Finance",
+    intentTag: "Review",
+    branchGroupId: "pricing-digest",
+    branchCount: 1,
+    isUnread: false,
   },
 ];
 
@@ -274,7 +313,11 @@ export const meetings: MeetingRecord[] = [
     id: "meeting-1",
     title: "Supplier review - Thai Union",
     time: "Today · 10:30 AM PST",
+    dayGroup: "Today",
     stage: "Upcoming",
+    domain: "Compliance",
+    platform: "Google Meet",
+    platformDomain: "meet.google.com",
     owner: "Hemanth",
     participants: ["Raj Mehta", "Thai Union Ops", "Compliance Bot"],
     summary: "Prep review for delayed documentation and exception handling before PO release.",
@@ -285,24 +328,62 @@ export const meetings: MeetingRecord[] = [
     ],
     decisions: ["Pending live meeting"],
     actionItems: ["Carry forward current approval recommendation into the meeting"],
+    summaryLines: [
+      "Missing compliance docs still block PO release while extension terms remain under review.",
+      "Supplier requested a conditional extension with owner/date explicitly tracked.",
+    ],
+    preReadNudges: [
+      "Bring latest compliance expiry sheet before joining.",
+      "Confirm who sends the customer update if ETA changes.",
+    ],
+    generatedNotes:
+      "## Pre-read\n- Missing compliance docs: HACCP + BL copy.\n- Goal: decide extension terms and owner.\n\n## Risks\n- PO release blocked if legal wording is not approved.\n- Customer communication delay could escalate.\n",
+    linkedProject: "Supplier Compliance Audit · SCA-26",
+    linkedClient: "Thai Union Ops",
+    clientDomain: "thaiunion.com",
+    vendor: "Thai Union Ops",
+    vendorDomain: "thaiunion.com",
+    folder: "Compliance",
   },
   {
     id: "meeting-2",
     title: "Logistics sync - Maersk",
     time: "Today · 2:00 PM PST",
+    dayGroup: "Today",
     stage: "Upcoming",
+    domain: "Logistics",
+    platform: "Microsoft Teams",
+    platformDomain: "teams.microsoft.com",
     owner: "Ops desk",
     participants: ["Sarah Kim", "Port ops", "Logistics Bot"],
     summary: "Review container delays, revised arrival windows, and customer notification cadence.",
     agenda: ["Validate revised ETA", "Confirm customer comms", "Check inspection timing"],
     decisions: ["Pending live meeting"],
     actionItems: ["Bring open inbox threads related to YB-7221"],
+    summaryLines: [
+      "Container ETA drift requires same-day customer message alignment.",
+      "Inspection timing and revised arrival window need confirmation.",
+    ],
+    preReadNudges: [
+      "Open thread thread-2 and thread-1 before call.",
+      "Check transshipment update from Colombo run.",
+    ],
+    linkedProject: "Mumbai-Rotterdam Q2 · MR-Q2",
+    linkedClient: "Atlantic Fresh",
+    clientDomain: "atlanticfreshseafood.com",
+    vendor: "Maersk",
+    vendorDomain: "maersk.com",
+    folder: "Customer Calls",
   },
   {
     id: "meeting-3",
     title: "Morning operator brief",
     time: "Today · 8:15 AM PST",
+    dayGroup: "Yesterday",
     stage: "Completed",
+    domain: "Standup",
+    platform: "Google Meet",
+    platformDomain: "meet.google.com",
     owner: "Ubik",
     participants: ["Hemanth", "Pricing monitor", "Inbox triage agent"],
     summary: "Reviewed top risk items, upcoming meetings, and overnight workflow outcomes.",
@@ -312,6 +393,404 @@ export const meetings: MeetingRecord[] = [
       "Keep pricing monitor in daily cadence",
     ],
     actionItems: ["Reply to Sarah on rate confirmation", "Prepare supplier review packet"],
+    summaryLines: [
+      "Morning brief completed with two urgent decisions routed to approvals.",
+      "Pricing monitor remains in daily cadence.",
+    ],
+    generatedNotes:
+      "## Summary\n- Reviewed inbox risk, approvals queue, and pricing run outcomes.\n\n## Decisions\n- Escalate Thai Union exception to approval queue.\n- Keep pricing monitor cadence daily.\n\n## Actions\n- Reply to Sarah on rate confirmation.\n- Prepare supplier review packet.\n",
+    linkedProject: "Atlantic Fresh Q3 · AF-Q3",
+    linkedClient: "Atlantic Fresh",
+    clientDomain: "atlanticfreshseafood.com",
+    vendor: "Internal Ops",
+    vendorDomain: "ubik.ai",
+    folder: "Standups",
+  },
+];
+
+export const contactCards: ContactCard[] = [
+  {
+    id: "contact-hemanth",
+    name: "Hemanth Rao",
+    role: "Operator",
+    company: "UBIK",
+    domain: "ubik.ai",
+    avatarSrc: "/avatars/hemanth.svg",
+    avatarFallback: "HR",
+  },
+  {
+    id: "contact-sarah",
+    name: "Sarah Kim",
+    role: "Logistics Manager",
+    company: "Maersk",
+    domain: "maersk.com",
+    avatarSrc: "/avatars/sarah.svg",
+    avatarFallback: "SK",
+  },
+  {
+    id: "contact-raj",
+    name: "Raj Mehta",
+    role: "Plant Ops Lead",
+    company: "Thai Union Ops",
+    domain: "thaiunion.com",
+    avatarSrc: "/avatars/raj.svg",
+    avatarFallback: "RM",
+  },
+  {
+    id: "contact-ana",
+    name: "Ana Volkova",
+    role: "Finance Controller",
+    company: "Atlantic Fresh",
+    domain: "atlanticfreshseafood.com",
+    avatarSrc: "/avatars/ana.svg",
+    avatarFallback: "AV",
+  },
+  {
+    id: "contact-maya",
+    name: "Maya Chen",
+    role: "Packaging & Sustainability",
+    company: "Wanaka Seafood",
+    domain: "wanakaseafood.com",
+    avatarSrc: "/avatars/maya.svg",
+    avatarFallback: "MC",
+  },
+];
+
+export const homeActivityFeed: ActivityFeedItem[] = [
+  {
+    id: "activity-1",
+    type: "meeting",
+    dayGroup: "Today",
+    displayMode: "hero",
+    title: "Logistics sync - Maersk starts in 24 min",
+    insight: "ETA drift +6 days requires customer notification decision before noon.",
+    owner: "Ops desk",
+    time: "Today · 1:36 PM",
+    priority: "High",
+    source: "Meetings",
+    sourceDomain: "teams.microsoft.com",
+    linkedMeetingId: "meeting-2",
+    ctaLabel: "Join now",
+  },
+  {
+    id: "activity-2",
+    type: "artifact",
+    dayGroup: "Today",
+    displayMode: "hero",
+    title: "Agent artifact: pricing variance digest generated",
+    insight: "Two suppliers outside threshold. Suggested mitigation ready for review.",
+    owner: "Pricing monitor",
+    time: "Today · 06:01 AM",
+    priority: "Medium",
+    source: "Agents",
+    sourceDomain: "ubik.ai",
+    ctaLabel: "Open artifact",
+  },
+  {
+    id: "activity-3",
+    type: "approval",
+    dayGroup: "Today",
+    displayMode: "row",
+    title: "Approval required: detention clause response",
+    insight: "Draft prepared with clause 4.2 preserved; legal sign-off needed now.",
+    owner: "Sarah Kim",
+    time: "Today · 08:42 AM",
+    priority: "Critical",
+    source: "Approvals",
+    sourceDomain: "gmail.com",
+    linkedThreadId: "thread-1",
+    ctaLabel: "Review approval",
+  },
+  {
+    id: "activity-4",
+    type: "followup",
+    dayGroup: "Yesterday",
+    displayMode: "row",
+    title: "Inbox follow-up: BL copy still pending",
+    insight: "Supplier expects reminder before cargo release window closes.",
+    owner: "Thai Union Ops",
+    time: "Today · 10:07 AM",
+    priority: "High",
+    source: "Inbox",
+    sourceDomain: "thaiunion.com",
+    linkedThreadId: "thread-3",
+    ctaLabel: "Open thread",
+  },
+];
+
+export const projectPresetMeta: Record<
+  ProjectPreset,
+  {
+    label: string;
+    blurb: string;
+    spotlightMetricLabel: string;
+    spotlightMetricValue: string;
+    riskLabel: string;
+    riskValue: string;
+    trend: number[];
+  }
+> = {
+  sales: {
+    label: "Sales",
+    blurb: "Lead conversion, deal pace, and quote win-rate in one lens.",
+    spotlightMetricLabel: "Pipeline coverage",
+    spotlightMetricValue: "3.4x",
+    riskLabel: "Escalation risk",
+    riskValue: "2 accounts",
+    trend: [42, 50, 48, 57, 62, 66, 71],
+  },
+  account_management: {
+    label: "Account Management",
+    blurb: "Retention commitments, follow-ups, and renewals by owner.",
+    spotlightMetricLabel: "Renewal readiness",
+    spotlightMetricValue: "82%",
+    riskLabel: "Customer escalations",
+    riskValue: "3 active",
+    trend: [68, 64, 69, 71, 73, 75, 77],
+  },
+  plant_ops: {
+    label: "Plant Ops",
+    blurb: "Production continuity, handoff timing, and cold-chain events.",
+    spotlightMetricLabel: "On-time lots",
+    spotlightMetricValue: "91%",
+    riskLabel: "Quality holds",
+    riskValue: "1 lot",
+    trend: [88, 90, 92, 91, 93, 95, 94],
+  },
+  packaging_sustainability: {
+    label: "Packaging & Sustainability",
+    blurb: "Material compliance, audits, and sustainability thresholds.",
+    spotlightMetricLabel: "Compliant SKUs",
+    spotlightMetricValue: "74%",
+    riskLabel: "Cert expiries",
+    riskValue: "4 pending",
+    trend: [57, 60, 58, 61, 63, 65, 67],
+  },
+  finance: {
+    label: "Finance",
+    blurb: "Margin pressure, cash cycle, and exception exposure.",
+    spotlightMetricLabel: "Gross margin",
+    spotlightMetricValue: "18.6%",
+    riskLabel: "At-risk receivables",
+    riskValue: "$184K",
+    trend: [17, 17.4, 17.2, 17.9, 18.1, 18.4, 18.6],
+  },
+  custom: {
+    label: "Custom",
+    blurb: "Compose your own lens while keeping the same execution skeleton.",
+    spotlightMetricLabel: "Custom KPI",
+    spotlightMetricValue: "Set target",
+    riskLabel: "Open blockers",
+    riskValue: "0",
+    trend: [20, 21, 22, 23, 22, 23, 24],
+  },
+};
+
+export const clients = [
+  { id: "atlantic-fresh", name: "Atlantic Fresh", code: "AF-Q3", status: "needs-attention" },
+  { id: "tastematic", name: "Tastematic Foods", code: "TS-Q2", status: "on-track" },
+  { id: "wanaka", name: "Wanaka Seafood", code: "WK-Q2", status: "on-track" },
+] as const;
+
+export const activeOrders = [
+  {
+    id: "PO-2847",
+    clientId: "atlantic-fresh",
+    sku: "26/30 PD Tail",
+    weight: "3.2 MT",
+    status: "proforma-sent",
+    value: 18240,
+  },
+  {
+    id: "PO-2851",
+    clientId: "atlantic-fresh",
+    sku: "Atlantic Salmon Fillet",
+    weight: "1.8 MT",
+    status: "awaiting-bl",
+    value: 14600,
+  },
+  {
+    id: "PO-2839",
+    clientId: "tastematic",
+    sku: "Squid Rings IQF",
+    weight: "5.0 MT",
+    status: "in-transit",
+    value: 22100,
+  },
+];
+
+export const cargoMovements = [
+  {
+    containerId: "MSCU-4421099",
+    clientId: "atlantic-fresh",
+    destination: "Rotterdam",
+    vessel: "MSC Eloise",
+    etaDays: 16,
+    etaDate: "Apr 28",
+    lastEvent: "Departed Kochi",
+    delayDays: 0,
+  },
+  {
+    containerId: "MAEU-7712034",
+    clientId: "atlantic-fresh",
+    destination: "Seattle",
+    vessel: "Maersk Nitra",
+    etaDays: 21,
+    etaDate: "May 3",
+    lastEvent: "Transshipment at Colombo",
+    delayDays: 6,
+  },
+  {
+    containerId: "CMAU-8834122",
+    clientId: "tastematic",
+    destination: "New Jersey",
+    vessel: "CMA CGM Titan",
+    etaDays: 34,
+    etaDate: "May 16",
+    lastEvent: "Loaded at Shanghai",
+    delayDays: 0,
+  },
+];
+
+export const pricingHistory = [
+  { sku: "26/30 PD Tail", vendor: "Penma Products", lastBid: 5.4, currency: "USD", unit: "kg", date: "Apr 8" },
+  { sku: "26/30 PD Tail", vendor: "Thai Union Ops", lastBid: 5.2, currency: "USD", unit: "kg", date: "Apr 9" },
+  { sku: "26/30 PD Tail", vendor: "Nordic Catch", lastBid: 5.55, currency: "USD", unit: "kg", date: "Apr 6" },
+];
+
+export const openItems = [
+  { type: "compliance", label: "HACCP cert expires May 1", entity: "Thai Union Ops", urgency: "high", daysLeft: 8 },
+  { type: "document", label: "BL copy awaited", entity: "PO-2847", urgency: "medium", daysLeft: null },
+  { type: "action", label: "Customer update due today", entity: "Atlantic Fresh", urgency: "high", daysLeft: 0 },
+];
+
+export const humanTasks = [
+  {
+    id: "t1",
+    title: "Review Wanaka BL discrepancy",
+    priority: "high",
+    dueDate: "today",
+    status: "pending",
+    linkedEntity: "Wanaka Seafood",
+    source: "manual",
+  },
+  {
+    id: "t2",
+    title: "Send pre-shipment update to Atlantic Fresh",
+    priority: "high",
+    dueDate: "today",
+    status: "pending",
+    linkedEntity: "Atlantic Fresh",
+    source: "agent-suggested",
+  },
+  {
+    id: "t3",
+    title: "Confirm detention clause with legal",
+    priority: "high",
+    dueDate: "today",
+    status: "done",
+    linkedEntity: "MR-Q2",
+    source: "manual",
+  },
+  {
+    id: "t4",
+    title: "Prepare Q2 margin review for Tastematic",
+    priority: "medium",
+    dueDate: "Apr 15",
+    status: "pending",
+    linkedEntity: "Tastematic Foods",
+    source: "manual",
+  },
+  {
+    id: "t5",
+    title: "Follow up Thai Union on HACCP renewal",
+    priority: "high",
+    dueDate: "Apr 14",
+    status: "pending",
+    linkedEntity: "Thai Union Ops",
+    source: "agent-suggested",
+  },
+];
+
+export const suggestedTasks = [
+  {
+    id: "s1",
+    title: "Schedule Linux Foundation membership discussion with Candy",
+    linkedEntity: "Solarpunk",
+    source: "meeting",
+  },
+  { id: "s2", title: "Follow up on letter at Foundingbird office", linkedEntity: "Solarpunk", source: "inbox" },
+  {
+    id: "s3",
+    title: "Connect mid-week to plan Wanaka implementation roadmap",
+    linkedEntity: "Wanaka Seafood",
+    source: "meeting",
+  },
+];
+
+export const agentTasks = [
+  {
+    id: "a1",
+    title: "Container ETA polling",
+    status: "running",
+    targets: ["MSCU-4421099", "MAEU-7712034"],
+    lastRun: "2 min ago",
+    nextRun: null,
+  },
+  {
+    id: "a2",
+    title: "Compliance cert expiry scan",
+    status: "running",
+    targets: ["all active suppliers"],
+    lastRun: null,
+    nextRun: "06:00 UTC",
+  },
+  {
+    id: "a3",
+    title: "Draft customer update for Atlantic Fresh ETA delay",
+    status: "pending-approval",
+    preview: "Hi Alex, wanted to flag that your MAEU-7712034 shipment has shifted ETA by 6 days to May 3...",
+  },
+  {
+    id: "a4",
+    title: "Supplier follow-up: Thai Union HACCP renewal draft",
+    status: "pending-approval",
+    preview: "Hi Thai Union team, our records show your HACCP certificate expires May 1...",
+  },
+  { id: "a5", title: "Morning pricing brief assembled", status: "completed", completedAt: "06:01 UTC" },
+  { id: "a6", title: "Inbox triage run — 4 threads prioritized", status: "completed", completedAt: "07:45 UTC" },
+];
+
+export const recentChats = [
+  {
+    id: "rc1",
+    title: "Thai Union response draft",
+    timestamp: "12 min ago",
+    preview: "Approve with clause 4.2 preserved and copy legal on the outbound note.",
+  },
+  {
+    id: "rc2",
+    title: "Supplier review sync",
+    timestamp: "34 min ago",
+    preview: "HACCP cert expires in 8 days. Recommend escalating to compliance bot before the Thursday call.",
+  },
+  {
+    id: "rc3",
+    title: "Atlantic Fresh Q3 status check",
+    timestamp: "2 hrs ago",
+    preview: "ETA shifted by 6 days to May 3. Container MAEU-7712034 had transshipment delay at Colombo.",
+  },
+  {
+    id: "rc4",
+    title: "Pricing monitor run 842",
+    timestamp: "1 hr ago",
+    preview: "Margin pressure concentrated in frozen whitefish lots. Two suppliers remain outside threshold.",
+  },
+  {
+    id: "rc5",
+    title: "Morning operator brief",
+    timestamp: "Yesterday",
+    preview: "4 inbox threads requiring action. 2 urgent approvals. Container MSCU-4421099 on track.",
   },
 ];
 
@@ -595,5 +1074,11 @@ export const helpResources: HelpResource[] = [
 ];
 
 export function getRouteMeta(pathname: string) {
-  return routeMetas.find((route) => route.path === pathname) ?? routeMetas.find((route) => route.path === "/");
+  if (pathname.startsWith("/meetings/")) {
+    return routeMetas.find((route) => route.path === "/meetings") ?? routeMetas.find((route) => route.path === "/home");
+  }
+  if (pathname.startsWith("/inbox/")) {
+    return routeMetas.find((route) => route.path === "/inbox") ?? routeMetas.find((route) => route.path === "/home");
+  }
+  return routeMetas.find((route) => route.path === pathname) ?? routeMetas.find((route) => route.path === "/home");
 }

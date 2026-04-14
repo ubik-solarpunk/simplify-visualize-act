@@ -1,10 +1,11 @@
+import { PageContainer } from "@/components/page-container";
 import { SectionHeading, SmallButton, Surface } from "@/components/ubik-primitives";
 import { helpResources } from "@/lib/ubik-data";
 
 export default function Help() {
   return (
     <div className="px-4 py-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
+      <PageContainer className="space-y-6">
         <SectionHeading
           eyebrow="Support"
           title="Help keeps operator guidance close to the product."
@@ -22,7 +23,7 @@ export default function Help() {
             </Surface>
           ))}
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

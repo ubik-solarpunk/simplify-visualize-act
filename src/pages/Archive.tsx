@@ -1,10 +1,11 @@
 import { archiveRecords } from "@/lib/ubik-data";
+import { PageContainer } from "@/components/page-container";
 import { SectionHeading, Surface } from "@/components/ubik-primitives";
 
 export default function Archive() {
   return (
     <div className="px-4 py-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
+      <PageContainer className="space-y-6">
         <SectionHeading
           eyebrow="History"
           title="Archive holds prior work without changing the shell."
@@ -27,7 +28,7 @@ export default function Archive() {
             </div>
           ))}
         </Surface>
-      </div>
+      </PageContainer>
     </div>
   );
 }

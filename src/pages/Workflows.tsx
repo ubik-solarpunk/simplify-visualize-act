@@ -1,5 +1,6 @@
 import { ArrowRight, Play, TimerReset } from "lucide-react";
 
+import { PageContainer } from "@/components/page-container";
 import { Metric, SectionHeading, SmallButton, StatusPill, Surface } from "@/components/ubik-primitives";
 import { useShellState, useWorkbenchState } from "@/hooks/use-shell-state";
 import { workflowDefinitions, workflowRuns } from "@/lib/ubik-data";
@@ -11,7 +12,7 @@ export default function Workflows() {
 
   return (
     <div className="px-4 py-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <PageContainer className="space-y-6">
         <SectionHeading
           eyebrow="Playbooks"
           title="Workflows are reusable operating playbooks with visible execution."
@@ -120,7 +121,7 @@ export default function Workflows() {
             </div>
           </Surface>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

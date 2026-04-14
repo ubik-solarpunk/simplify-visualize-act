@@ -82,7 +82,12 @@ export type InboxThread = {
   recommendedReply: string;
   provenance: string[];
   attachments: string[];
+  domainTag?: string;
+  intentTag?: string;
+  branchGroupId?: string;
+  branchCount?: number;
   approvalRequired?: boolean;
+  isUnread?: boolean;
 };
 
 export type MeetingRecord = {
@@ -90,12 +95,60 @@ export type MeetingRecord = {
   title: string;
   time: string;
   stage: "Upcoming" | "Completed";
+  domain?: "Compliance" | "Logistics" | "Commercial" | "Standup";
   owner: string;
   participants: string[];
   summary: string;
   agenda: string[];
   decisions: string[];
   actionItems: string[];
+  dayGroup?: "Today" | "Yesterday" | "This Week";
+  platform?: "Google Meet" | "Zoom" | "Microsoft Teams" | "Phone";
+  platformDomain?: string;
+  linkedProject?: string;
+  linkedClient?: string;
+  clientDomain?: string;
+  vendor?: string;
+  vendorDomain?: string;
+  folder?: "Compliance" | "Customer Calls" | "Standups";
+  summaryLines?: string[];
+  preReadNudges?: string[];
+  generatedNotes?: string;
+};
+
+export type ActivityFeedItem = {
+  id: string;
+  type: "meeting" | "artifact" | "approval" | "followup";
+  dayGroup: "Today" | "Yesterday";
+  displayMode?: "hero" | "row";
+  title: string;
+  insight: string;
+  owner: string;
+  time: string;
+  priority: "Critical" | "High" | "Medium";
+  source: "Meetings" | "Agents" | "Approvals" | "Inbox";
+  sourceDomain?: string;
+  linkedMeetingId?: string;
+  linkedThreadId?: string;
+  ctaLabel: string;
+};
+
+export type ProjectPreset =
+  | "sales"
+  | "account_management"
+  | "plant_ops"
+  | "packaging_sustainability"
+  | "finance"
+  | "custom";
+
+export type ContactCard = {
+  id: string;
+  name: string;
+  role: string;
+  company: string;
+  domain?: string;
+  avatarSrc?: string;
+  avatarFallback: string;
 };
 
 export type LinkedItem = {

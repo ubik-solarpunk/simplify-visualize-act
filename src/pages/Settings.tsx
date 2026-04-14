@@ -1,10 +1,11 @@
+import { PageContainer } from "@/components/page-container";
 import { SectionHeading, Surface } from "@/components/ubik-primitives";
 import { settingsSections } from "@/lib/ubik-data";
 
 export default function Settings() {
   return (
     <div className="px-4 py-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <PageContainer className="space-y-6">
         <SectionHeading
           eyebrow="Workspace Preferences"
           title="Settings expose environment, connectors, and operator defaults clearly."
@@ -27,7 +28,7 @@ export default function Settings() {
             </Surface>
           ))}
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

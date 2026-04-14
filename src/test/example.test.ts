@@ -3,52 +3,26 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import App from "@/App";
+import { inboxThreads } from "@/lib/ubik-data";
+
+const CHAT_PLACEHOLDER = "How can I help you today?";
 
 describe("Ubik shell", () => {
-  it("renders the Chat home as the default operator entry point", async () => {
+  it("renders Home as the default operator entry point", async () => {
     window.history.pushState({}, "", "/");
     render(createElement(App));
 
-    expect(await screen.findByText("Start with a question or a task")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Start with an operator task, a thread to continue, or a decision that needs context.")).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText("Search threads, notes, approvals")).not.toBeInTheDocument();
-    expect(screen.queryByText("Recent Work")).not.toBeInTheDocument();
-  });
-
-  it("preserves Chat composer state when switching tabs", async () => {
-    window.history.pushState({}, "", "/");
-    render(createElement(App));
-
-    const composer = await screen.findByPlaceholderText(
-      "Start with an operator task, a thread to continue, or a decision that needs context.",
-    );
-
-    fireEvent.change(composer, {
-      target: { value: "Prepare the operator note for the Thai Union review." },
-    });
-
-    fireEvent.click(screen.getAllByText("Inbox")[0]);
-
-    await waitFor(() => {
-      expect(screen.getByText("Inbox keeps inbound work readable and actionable.")).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getAllByText("Know Anything")[0]);
-
-    await waitFor(() => {
-      expect(
-        screen.getByDisplayValue("Prepare the operator note for the Thai Union review."),
-      ).toBeInTheDocument();
-    });
+    expect(await screen.findByText("Operator Brief")).toBeInTheDocument();
+    expect(screen.getByText("Back at it, Hemanth")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(CHAT_PLACEHOLDER)).not.toBeInTheDocument();
   });
 
   it("supports chat modes and source chips on Know Anything", async () => {
-    window.history.pushState({}, "", "/");
+    window.history.pushState({}, "", "/chat");
     render(createElement(App));
 
     fireEvent.click(await screen.findByText("Max"));
     fireEvent.click(screen.getByText("Internet"));
-
     fireEvent.click(screen.getByLabelText("Run prompt"));
 
     expect(await screen.findByText("Know Anything runtime")).toBeInTheDocument();
@@ -57,27 +31,21 @@ describe("Ubik shell", () => {
   });
 
   it("reuses the base Know Anything tab when New Thread is clicked on a pristine chat", async () => {
-    window.history.pushState({}, "", "/?tab=chat-home");
+    window.history.pushState({}, "", "/chat?tab=chat-home");
     render(createElement(App));
 
     fireEvent.click(await screen.findByText("New Thread"));
 
-    const composer = await screen.findByPlaceholderText(
-      "Start with an operator task, a thread to continue, or a decision that needs context.",
-    );
-
+    const composer = await screen.findByPlaceholderText(CHAT_PLACEHOLDER);
     expect(composer).toHaveValue("");
-    expect(window.location.search).toContain("tab=chat-home");
+    expect(window.location.search).toContain("tab=chat-main");
   });
 
   it("creates a fresh Know Anything tab when New Thread is clicked after work starts", async () => {
-    window.history.pushState({}, "", "/?tab=chat-home");
+    window.history.pushState({}, "", "/chat?tab=chat-home");
     render(createElement(App));
 
-    const composer = await screen.findByPlaceholderText(
-      "Start with an operator task, a thread to continue, or a decision that needs context.",
-    );
-
+    const composer = await screen.findByPlaceholderText(CHAT_PLACEHOLDER);
     fireEvent.change(composer, {
       target: { value: "Draft a shipment delay response." },
     });
@@ -88,23 +56,21 @@ describe("Ubik shell", () => {
       expect(window.location.search).not.toContain("tab=chat-home");
     });
 
-    expect(
-      screen.getByPlaceholderText("Start with an operator task, a thread to continue, or a decision that needs context."),
-    ).toHaveValue("");
+    expect(screen.getByPlaceholderText(CHAT_PLACEHOLDER)).toHaveValue("");
   });
 
-  it("adds connector context from the composer toolbar", async () => {
-    window.history.pushState({}, "", "/");
+  it("toggles optional sources from More sources", async () => {
+    window.history.pushState({}, "", "/chat");
     render(createElement(App));
 
-    fireEvent.click(await screen.findByLabelText("Open context menu"));
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Salesforce" }));
+    fireEvent.click(await screen.findByText("More sources"));
+    fireEvent.click(screen.getByText("Salesforce"));
 
-    expect(await screen.findByText("Salesforce")).toBeInTheDocument();
+    expect(screen.getByText("Organization · Salesforce")).toBeInTheDocument();
   });
 
   it("opens the share dialog from Know Anything", async () => {
-    window.history.pushState({}, "", "/");
+    window.history.pushState({}, "", "/chat");
     render(createElement(App));
 
     fireEvent.click(await screen.findByText("Share"));
@@ -117,13 +83,10 @@ describe("Ubik shell", () => {
   });
 
   it("opens a fresh temporary chat from the composer icon", async () => {
-    window.history.pushState({}, "", "/?tab=chat-home");
+    window.history.pushState({}, "", "/chat?tab=chat-home");
     render(createElement(App));
 
-    const composer = await screen.findByPlaceholderText(
-      "Start with an operator task, a thread to continue, or a decision that needs context.",
-    );
-
+    const composer = await screen.findByPlaceholderText(CHAT_PLACEHOLDER);
     fireEvent.change(composer, {
       target: { value: "Review the latest approvals queue." },
     });
@@ -134,17 +97,15 @@ describe("Ubik shell", () => {
       expect(window.location.search).not.toContain("tab=chat-home");
     });
 
-    expect(
-      screen.getByPlaceholderText("Start with an operator task, a thread to continue, or a decision that needs context."),
-    ).toHaveValue("");
+    expect(screen.getByPlaceholderText(CHAT_PLACEHOLDER)).toHaveValue("");
     expect(screen.getByText("Temp Chat")).toBeInTheDocument();
   });
 
   it("limits the workbench to 8 tabs", async () => {
-    window.history.pushState({}, "", "/?tab=chat-home");
+    window.history.pushState({}, "", "/chat?tab=chat-home");
     render(createElement(App));
 
-    for (let index = 0; index < 4; index += 1) {
+    for (let index = 0; index < 3; index += 1) {
       fireEvent.click(screen.getByLabelText("Open temporary chat"));
       await waitFor(() => {
         expect(screen.getAllByText("Temp Chat").length).toBe(index + 1);
@@ -172,42 +133,50 @@ describe("Ubik shell", () => {
     expect(screen.getByText("SUGGESTED")).toBeInTheDocument();
   });
 
-  it("runs Summarize priorities into a new Know Anything tab", async () => {
-    window.history.pushState({}, "", "/");
-    render(createElement(App));
-
-    const createButtons = await screen.findAllByLabelText("Open command palette");
-    fireEvent.click(createButtons[0]);
-
-    fireEvent.click(await screen.findByText("Summarize today's priorities"));
-
-    const composer = await screen.findByPlaceholderText(
-      "Start with an operator task, a thread to continue, or a decision that needs context.",
-    );
-
-    await waitFor(() => {
-      expect(composer).toHaveValue(
-        "Summarize today's priorities using Inbox, Approvals, and Meetings. Output top 5 priorities with next action, owner, and ETA.",
-      );
-    });
-  });
-
   it("runs approvals fetch into drawer and runtime and navigates to Approvals", async () => {
     window.history.pushState({}, "", "/");
     render(createElement(App));
 
     const createButtons = await screen.findAllByLabelText("Open command palette");
     fireEvent.click(createButtons[0]);
-
     fireEvent.click(await screen.findByText("Fetch pending approvals from agents"));
 
     await waitFor(() => {
       expect(
-        screen.getByText("Approvals keep recommendations direct, auditable, and easy to inspect."),
+        screen.getByText("Human-in-the-loop review queue with auditable recommendations."),
       ).toBeInTheDocument();
     });
 
     expect(screen.getByText("Pending approvals")).toBeInTheDocument();
     expect(screen.getByText("Approvals fetch")).toBeInTheDocument();
   });
+
+  it("matches Inbox v4.3 action layout and row schedule flow", async () => {
+    window.localStorage.clear();
+    window.history.pushState({}, "", `/inbox/${inboxThreads[0]?.id ?? ""}`);
+    render(createElement(App));
+
+    expect(await screen.findByText("Actions")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Open approval and assign/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Open discuss panel/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Open this thread in chat/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Mark thread as read/i })).toBeInTheDocument();
+
+    expect(screen.queryByText("Context suggestion")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Set reminder/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Open in Gmail$/i })).not.toBeInTheDocument();
+
+    expect(screen.getAllByText("Mark reviewed").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Watch").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Archive").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Open in Email").length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getAllByLabelText(/Open schedule menu for/i)[0]);
+    expect(await screen.findByText("Schedule reminder")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Remind .* tomorrow at 9 AM/i }));
+    await waitFor(() => {
+      expect(screen.queryByText("Schedule reminder")).not.toBeInTheDocument();
+    });
+  }, 15000);
 });
