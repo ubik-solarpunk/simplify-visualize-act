@@ -7,6 +7,7 @@ import {
   ChevronRight,
   FolderKanban,
   HelpCircle,
+  Home,
   Inbox,
   LayoutDashboard,
   Pin,
@@ -38,6 +39,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const iconMap: Record<string, LucideIcon> = {
+  home: Home,
   chat: LayoutDashboard,
   inbox: Inbox,
   meetings: Calendar,

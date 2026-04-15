@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Shell } from "@/components/Shell";
 import Index from "./pages/Index";
+import Home from "./pages/Home";
 import Agents from "./pages/Agents";
 import Approvals from "./pages/Approvals";
 import Archive from "./pages/Archive";
@@ -29,11 +30,13 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/chat" element={<Index />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/agents" element={<Agents />} />
             <Route path="/approvals" element={<Approvals />} />
             <Route path="/archive" element={<Archive />} />
             <Route path="/help" element={<Help />} />
             <Route path="/inbox" element={<Inbox />} />
+            <Route path="/inbox/:threadId" element={<Inbox />} />
             <Route path="/intelligence" element={<Intelligence />} />
             <Route path="/meetings" element={<Meetings />} />
             <Route path="/meetings/:meetingId" element={<Meetings />} />

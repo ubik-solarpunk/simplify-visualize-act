@@ -16,6 +16,14 @@ const KNOW_ANYTHING_DEFAULTS = {
   connectorScope: null as string | null,
 };
 
+function getCanonicalPath(pathname: string) {
+  if (pathname.startsWith("/inbox/")) {
+    return "/inbox";
+  }
+
+  return pathname;
+}
+
 function makeTabId(routeKey: string) {
   tabSequence += 1;
   return `${routeKey}-${tabSequence}`;
@@ -23,14 +31,15 @@ function makeTabId(routeKey: string) {
 
 function buildRouteTab(pathname: string): WorkbenchTab {
   const route = getRouteMeta(pathname);
+  const canonicalPath = getCanonicalPath(pathname);
 
   return {
     id: makeTabId(route?.key ?? "tab"),
     routeKey: route?.key ?? "tab",
     title: route?.title ?? "Workspace",
-    path: pathname,
-    pinned: pathname === "/",
-    closable: pathname !== "/",
+    path: canonicalPath,
+    pinned: canonicalPath === "/",
+    closable: canonicalPath !== "/",
   };
 }
 
@@ -52,14 +61,15 @@ function insertTabAt(tabs: WorkbenchTab[], tab: WorkbenchTab, index: number) {
 
 function buildTabFromRoute(pathname: string, fallbackId: string): WorkbenchTab {
   const route = getRouteMeta(pathname);
+  const canonicalPath = getCanonicalPath(pathname);
 
   return {
     id: fallbackId,
     routeKey: route?.key ?? "tab",
     title: route?.title ?? "Workspace",
-    path: pathname,
-    pinned: pathname === "/",
-    closable: pathname !== "/",
+    path: canonicalPath,
+    pinned: canonicalPath === "/",
+    closable: canonicalPath !== "/",
   };
 }
 
@@ -124,12 +134,13 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const requestedTabId = params.get("tab");
+    const canonicalPath = getCanonicalPath(location.pathname);
     let resolvedTab = requestedTabId
-      ? tabs.find((tab) => tab.id === requestedTabId && tab.path === location.pathname)
+      ? tabs.find((tab) => tab.id === requestedTabId && tab.path === canonicalPath)
       : undefined;
 
     if (!resolvedTab) {
-      resolvedTab = tabs.find((tab) => tab.path === location.pathname);
+      resolvedTab = tabs.find((tab) => tab.path === canonicalPath);
     }
 
     if (!resolvedTab) {
@@ -164,6 +175,7 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
 
   const createTab = (pathname: string) => {
     const route = getRouteMeta(pathname);
+    const canonicalPath = getCanonicalPath(pathname);
     if (!route) return null;
     if (tabs.length >= MAX_WORKBENCH_TABS) {
       showTabLimitReached();
@@ -171,7 +183,7 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
     }
 
     const nextTab: WorkbenchTab =
-      pathname === "/"
+      canonicalPath === "/"
         ? {
             ...buildRouteTab(pathname),
             pinned: false,
@@ -230,8 +242,9 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
   };
 
   const navigateCurrentTab = (pathname: string) => {
+    const canonicalPath = getCanonicalPath(pathname);
     const activeTab = tabs.find((item) => item.id === activeTabId);
-    const existingTab = tabs.find((item) => item.path === pathname);
+    const existingTab = tabs.find((item) => item.path === canonicalPath);
     const route = getRouteMeta(pathname);
 
     if (existingTab) {
@@ -249,8 +262,8 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
 
     const nextTab = {
       ...buildTabFromRoute(pathname, activeTab.id),
-      pinned: activeTab.id === "chat-home" && pathname === "/",
-      closable: !(activeTab.id === "chat-home" && pathname === "/"),
+      pinned: activeTab.id === "chat-home" && canonicalPath === "/",
+      closable: !(activeTab.id === "chat-home" && canonicalPath === "/"),
     };
     setTabs((current) => current.map((item) => (item.id === activeTab.id ? nextTab : item)));
     navigate({
