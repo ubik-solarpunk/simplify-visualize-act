@@ -1,7 +1,9 @@
 import type {
+  ActivityFeedItem,
   AgentRecord,
   ApprovalItem,
   ArchiveRecord,
+  ContactCard,
   HelpResource,
   InboxThread,
   IntelligenceRecord,
@@ -21,6 +23,13 @@ import type {
 } from "@/lib/ubik-types";
 
 export const routeMetas: RouteMeta[] = [
+  {
+    key: "home",
+    title: "Home",
+    path: "/home",
+    description: "Daily operating brief with widgets, actions, and execution signals.",
+    actions: [{ label: "Refresh", kind: "secondary" }],
+  },
   {
     key: "chat",
     title: "Know Anything",
@@ -101,6 +110,7 @@ export const routeMetas: RouteMeta[] = [
 ];
 
 export const navigationItems: NavigationItem[] = [
+  { key: "home", title: "Home", path: "/home", section: "navigate" },
   { key: "chat", title: "Know Anything", path: "/", section: "navigate" },
   { key: "inbox", title: "Inbox", path: "/inbox", section: "navigate", badge: "12" },
   { key: "meetings", title: "Meetings", path: "/meetings", section: "navigate" },
@@ -122,7 +132,7 @@ export const initialWorkbenchTabs: WorkbenchTab[] = [
 ];
 
 export const workbenchLauncherRoutes = routeMetas.filter((route) =>
-  ["/", "/inbox", "/meetings", "/projects", "/intelligence", "/approvals"].includes(route.path),
+  ["/home", "/", "/inbox", "/meetings", "/projects", "/intelligence", "/approvals"].includes(route.path),
 );
 
 export const pinnedItems: PinnedItem[] = [
@@ -1548,6 +1558,176 @@ export const meetings: MeetingRecord[] = [
       "Keep pricing monitor in daily cadence",
     ],
     actionItems: ["Reply to Sarah on rate confirmation", "Prepare supplier review packet"],
+  },
+];
+
+export const contactCards: ContactCard[] = [
+  {
+    id: "contact-hemanth",
+    name: "Hemanth Rao",
+    role: "Operator",
+    company: "UBIK",
+    domain: "ubik.ai",
+    avatarSrc: "/avatars/hemanth.svg",
+    avatarFallback: "HR",
+  },
+  {
+    id: "contact-sarah",
+    name: "Sarah Kim",
+    role: "Logistics Manager",
+    company: "Maersk",
+    domain: "maersk.com",
+    avatarSrc: "/avatars/sarah.svg",
+    avatarFallback: "SK",
+  },
+  {
+    id: "contact-raj",
+    name: "Raj Mehta",
+    role: "Plant Ops Lead",
+    company: "Thai Union Ops",
+    domain: "thaiunion.com",
+    avatarSrc: "/avatars/raj.svg",
+    avatarFallback: "RM",
+  },
+  {
+    id: "contact-ana",
+    name: "Ana Volkova",
+    role: "Finance Controller",
+    company: "Atlantic Fresh",
+    domain: "atlanticfreshseafood.com",
+    avatarSrc: "/avatars/ana.svg",
+    avatarFallback: "AV",
+  },
+  {
+    id: "contact-maya",
+    name: "Maya Chen",
+    role: "Packaging & Sustainability",
+    company: "Wanaka Seafood",
+    domain: "wanakaseafood.com",
+    avatarSrc: "/avatars/maya.svg",
+    avatarFallback: "MC",
+  },
+];
+
+export const homeActivityFeed: ActivityFeedItem[] = [
+  {
+    id: "activity-1",
+    type: "meeting",
+    dayGroup: "Today",
+    displayMode: "hero",
+    title: "Logistics sync - Maersk starts in 24 min",
+    insight: "ETA drift +6 days requires customer notification decision before noon.",
+    owner: "Ops desk",
+    time: "Today · 1:36 PM",
+    priority: "High",
+    source: "Meetings",
+    sourceDomain: "teams.microsoft.com",
+    linkedMeetingId: "meeting-2",
+    ctaLabel: "Join now",
+  },
+  {
+    id: "activity-2",
+    type: "artifact",
+    dayGroup: "Today",
+    displayMode: "hero",
+    title: "Agent artifact: pricing variance digest generated",
+    insight: "Two suppliers outside threshold. Suggested mitigation ready for review.",
+    owner: "Pricing monitor",
+    time: "Today · 06:01 AM",
+    priority: "Medium",
+    source: "Agents",
+    sourceDomain: "ubik.ai",
+    ctaLabel: "Open artifact",
+  },
+  {
+    id: "activity-3",
+    type: "approval",
+    dayGroup: "Today",
+    displayMode: "row",
+    title: "Approval required: detention clause response",
+    insight: "Draft prepared with clause 4.2 preserved; legal sign-off needed now.",
+    owner: "Sarah Kim",
+    time: "Today · 08:42 AM",
+    priority: "Critical",
+    source: "Approvals",
+    sourceDomain: "gmail.com",
+    linkedThreadId: "thread-1",
+    ctaLabel: "Review approval",
+  },
+  {
+    id: "activity-4",
+    type: "followup",
+    dayGroup: "Yesterday",
+    displayMode: "row",
+    title: "Inbox follow-up: BL copy still pending",
+    insight: "Supplier expects reminder before cargo release window closes.",
+    owner: "Thai Union Ops",
+    time: "Today · 10:07 AM",
+    priority: "High",
+    source: "Inbox",
+    sourceDomain: "thaiunion.com",
+    linkedThreadId: "thread-3",
+    ctaLabel: "Open thread",
+  },
+];
+
+export const activeOrders = [
+  {
+    id: "PO-2847",
+    clientId: "atlantic-fresh",
+    sku: "26/30 PD Tail",
+    weight: "3.2 MT",
+    status: "proforma-sent",
+    value: 18240,
+  },
+  {
+    id: "PO-2851",
+    clientId: "atlantic-fresh",
+    sku: "Atlantic Salmon Fillet",
+    weight: "1.8 MT",
+    status: "awaiting-bl",
+    value: 14600,
+  },
+  {
+    id: "PO-2839",
+    clientId: "tastematic",
+    sku: "Squid Rings IQF",
+    weight: "5.0 MT",
+    status: "in-transit",
+    value: 22100,
+  },
+];
+
+export const cargoMovements = [
+  {
+    containerId: "MSCU-4421099",
+    clientId: "atlantic-fresh",
+    destination: "Rotterdam",
+    vessel: "MSC Eloise",
+    etaDays: 16,
+    etaDate: "Apr 28",
+    lastEvent: "Departed Kochi",
+    delayDays: 0,
+  },
+  {
+    containerId: "MAEU-7712034",
+    clientId: "atlantic-fresh",
+    destination: "Seattle",
+    vessel: "Maersk Nitra",
+    etaDays: 21,
+    etaDate: "May 3",
+    lastEvent: "Transshipment at Colombo",
+    delayDays: 6,
+  },
+  {
+    containerId: "CMAU-8834122",
+    clientId: "tastematic",
+    destination: "New Jersey",
+    vessel: "CMA CGM Titan",
+    etaDays: 34,
+    etaDate: "May 16",
+    lastEvent: "Loaded at Shanghai",
+    delayDays: 0,
   },
 ];
 

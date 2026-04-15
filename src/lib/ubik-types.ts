@@ -193,6 +193,13 @@ export type InboxThread = {
   actionRecommendations: InboxRecommendationAction[];
   provenance: InboxProvenanceItem[];
   attachments: string[];
+  status?: "Action required" | "Waiting" | "Reviewed";
+  domainTag?: string;
+  intentTag?: string;
+  branchGroupId?: string;
+  branchCount?: number;
+  approvalRequired?: boolean;
+  isUnread?: boolean;
   approvalPacket?: InboxApprovalPacket;
   taskPacket: InboxTaskPacket;
   permissionsLimited?: boolean;
@@ -209,6 +216,33 @@ export type MeetingRecord = {
   agenda: string[];
   decisions: string[];
   actionItems: string[];
+};
+
+export type ActivityFeedItem = {
+  id: string;
+  type: "meeting" | "artifact" | "approval" | "followup";
+  dayGroup: "Today" | "Yesterday";
+  displayMode?: "hero" | "row";
+  title: string;
+  insight: string;
+  owner: string;
+  time: string;
+  priority: "Critical" | "High" | "Medium";
+  source: "Meetings" | "Agents" | "Approvals" | "Inbox";
+  sourceDomain?: string;
+  linkedMeetingId?: string;
+  linkedThreadId?: string;
+  ctaLabel: string;
+};
+
+export type ContactCard = {
+  id: string;
+  name: string;
+  role: string;
+  company: string;
+  domain?: string;
+  avatarSrc?: string;
+  avatarFallback: string;
 };
 
 export type LinkedItem = {
