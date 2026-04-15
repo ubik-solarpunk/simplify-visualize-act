@@ -126,15 +126,20 @@ export default function Inbox() {
   const [taskInputByThread, setTaskInputByThread] = useWorkbenchState<Record<string, string>>("inbox-task-input", {});
   const [addedTasksByThread, setAddedTasksByThread] = useWorkbenchState<Record<string, AddedTask[]>>("inbox-added-tasks", {});
 
+  const isThreadUnread = useCallback(
+    (thread: (typeof inboxThreads)[number]) => Boolean(thread.isUnread) && !reviewedStateByThread[thread.id],
+    [reviewedStateByThread],
+  );
+
   const promptTokens = filterPrompt.toLowerCase().split(" ").filter(Boolean);
 
   const filteredByQuick = useMemo(() => {
     if (quickFilter === "all") return inboxThreads;
-    if (quickFilter === "unread") return inboxThreads.filter((thread) => thread.isUnread);
+    if (quickFilter === "unread") return inboxThreads.filter((thread) => isThreadUnread(thread));
     if (quickFilter === "attention") return inboxThreads.filter((thread) => thread.priority === "Critical" || thread.priority === "High");
     if (quickFilter === "waiting") return inboxThreads.filter((thread) => thread.status === "Waiting");
     return inboxThreads.filter((thread) => thread.approvalRequired);
-  }, [quickFilter]);
+  }, [isThreadUnread, quickFilter]);
 
   const filtered = useMemo(() => {
     if (!promptTokens.length) return filteredByQuick;
@@ -521,7 +526,7 @@ export default function Inbox() {
               <div className="divide-y divide-border">
                 {visibleFiltered.map((thread) => {
                   const selected = selectedThread?.id === thread.id;
-                  const isUnread = thread.isUnread && !reviewedStateByThread[thread.id];
+                  const isUnread = isThreadUnread(thread);
                   const isWatched = Boolean(watchStateByThread[thread.id]);
                   const rowMenuOpen = rowRemindMenuThreadId === thread.id;
                   const highSignalLabel = thread.approvalRequired

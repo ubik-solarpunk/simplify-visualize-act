@@ -179,4 +179,36 @@ describe("Ubik shell", () => {
       expect(screen.queryByText("Schedule reminder")).not.toBeInTheDocument();
     });
   }, 15000);
+
+  it("keeps the same inbox tab while switching between thread routes", async () => {
+    window.localStorage.clear();
+    window.history.pushState({}, "", `/inbox/${inboxThreads[0]?.id ?? ""}?tab=inbox-main`);
+    render(createElement(App));
+
+    expect(await screen.findByText("Actions")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(inboxThreads[1].subject));
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe(`/inbox/${inboxThreads[1].id}`);
+      expect(window.location.search).toContain("tab=inbox-main");
+    });
+  });
+
+  it("removes reviewed threads from the unread filter immediately", async () => {
+    window.localStorage.clear();
+    window.history.pushState({}, "", `/inbox/${inboxThreads[0]?.id ?? ""}`);
+    render(createElement(App));
+
+    const unreadCount = inboxThreads.filter((thread) => thread.isUnread).length;
+
+    fireEvent.click(await screen.findByRole("button", { name: "Unread" }));
+    expect(await screen.findByText(`${unreadCount} threads`)).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("button", { name: /Mark reviewed for/i })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(`${unreadCount - 1} threads`)).toBeInTheDocument();
+    });
+  });
 });

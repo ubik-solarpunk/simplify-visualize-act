@@ -18,6 +18,10 @@ const KNOW_ANYTHING_DEFAULTS = {
 const HOME_PATH = "/home";
 const CHAT_PATH = "/chat";
 
+function getCanonicalTabPath(pathname: string) {
+  return getRouteMeta(pathname)?.path ?? pathname;
+}
+
 function makeTabId(routeKey: string) {
   tabSequence += 1;
   return `${routeKey}-${tabSequence}`;
@@ -25,14 +29,15 @@ function makeTabId(routeKey: string) {
 
 function buildRouteTab(pathname: string): WorkbenchTab {
   const route = getRouteMeta(pathname);
+  const canonicalPath = getCanonicalTabPath(pathname);
 
   return {
     id: makeTabId(route?.key ?? "tab"),
     routeKey: route?.key ?? "tab",
     title: route?.title ?? "Workspace",
-    path: pathname,
-    pinned: pathname === HOME_PATH,
-    closable: pathname !== HOME_PATH,
+    path: canonicalPath,
+    pinned: canonicalPath === HOME_PATH,
+    closable: canonicalPath !== HOME_PATH,
   };
 }
 
@@ -54,14 +59,15 @@ function insertTabAt(tabs: WorkbenchTab[], tab: WorkbenchTab, index: number) {
 
 function buildTabFromRoute(pathname: string, fallbackId: string): WorkbenchTab {
   const route = getRouteMeta(pathname);
+  const canonicalPath = getCanonicalTabPath(pathname);
 
   return {
     id: fallbackId,
     routeKey: route?.key ?? "tab",
     title: route?.title ?? "Workspace",
-    path: pathname,
-    pinned: pathname === HOME_PATH,
-    closable: pathname !== HOME_PATH,
+    path: canonicalPath,
+    pinned: canonicalPath === HOME_PATH,
+    closable: canonicalPath !== HOME_PATH,
   };
 }
 
@@ -126,12 +132,13 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const requestedTabId = params.get("tab");
+    const canonicalPath = getCanonicalTabPath(location.pathname);
     let resolvedTab = requestedTabId
-      ? tabs.find((tab) => tab.id === requestedTabId && tab.path === location.pathname)
+      ? tabs.find((tab) => tab.id === requestedTabId && tab.path === canonicalPath)
       : undefined;
 
     if (!resolvedTab) {
-      resolvedTab = tabs.find((tab) => tab.path === location.pathname);
+      resolvedTab = tabs.find((tab) => tab.path === canonicalPath);
     }
 
     if (!resolvedTab) {
