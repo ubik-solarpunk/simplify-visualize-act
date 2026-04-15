@@ -151,11 +151,11 @@ export function AppSidebar() {
               type="button"
             >
               {!collapsed ? (
-                <h2 className="whitespace-nowrap leading-none font-mono text-[1.55rem] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground">
-                  [ UBIK ]
+                <h2 className="whitespace-nowrap leading-none font-mono text-[1.4rem] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground">
+                  UBIK
                 </h2>
               ) : (
-                <span className="font-mono text-[1.1rem] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground">[U]</span>
+                <span className="font-mono text-[1rem] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground">U</span>
               )}
             </button>
             {!collapsed ? (

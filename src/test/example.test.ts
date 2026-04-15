@@ -15,9 +15,11 @@ describe("Ubik shell", () => {
     expect(await screen.findByText("Operator Brief")).toBeInTheDocument();
     expect(screen.getByText("Back at it, Hemanth")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(CHAT_PLACEHOLDER)).not.toBeInTheDocument();
+    expect(screen.queryByText("Daily operating brief with widgets, actions, and execution signals.")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Refresh" })).not.toBeInTheDocument();
   });
 
-  it("supports chat modes and source chips on Know Anything", async () => {
+  it("supports chat modes and source chips on Ubik", async () => {
     window.history.pushState({}, "", "/chat");
     render(createElement(App));
 
@@ -25,38 +27,19 @@ describe("Ubik shell", () => {
     fireEvent.click(screen.getByText("Internet"));
     fireEvent.click(screen.getByLabelText("Run prompt"));
 
-    expect(await screen.findByText("Know Anything runtime")).toBeInTheDocument();
+    expect(await screen.findByText("Ubik runtime")).toBeInTheDocument();
     expect(screen.getByText("MAX")).toBeInTheDocument();
     expect(screen.getByText("Internet")).toBeInTheDocument();
   });
 
-  it("reuses the base Know Anything tab when New Thread is clicked on a pristine chat", async () => {
+  it("removes chat topbar controls after removing the global description bar", async () => {
     window.history.pushState({}, "", "/chat?tab=chat-home");
     render(createElement(App));
 
-    fireEvent.click(await screen.findByText("New Thread"));
-
-    const composer = await screen.findByPlaceholderText(CHAT_PLACEHOLDER);
-    expect(composer).toHaveValue("");
-    expect(window.location.search).toContain("tab=chat-main");
-  });
-
-  it("creates a fresh Know Anything tab when New Thread is clicked after work starts", async () => {
-    window.history.pushState({}, "", "/chat?tab=chat-home");
-    render(createElement(App));
-
-    const composer = await screen.findByPlaceholderText(CHAT_PLACEHOLDER);
-    fireEvent.change(composer, {
-      target: { value: "Draft a shipment delay response." },
-    });
-
-    fireEvent.click(await screen.findByText("New Thread"));
-
-    await waitFor(() => {
-      expect(window.location.search).not.toContain("tab=chat-home");
-    });
-
-    expect(screen.getByPlaceholderText(CHAT_PLACEHOLDER)).toHaveValue("");
+    expect(await screen.findByPlaceholderText(CHAT_PLACEHOLDER)).toBeInTheDocument();
+    expect(screen.queryByText("New Thread")).not.toBeInTheDocument();
+    expect(screen.queryByText("Share")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Open temporary chat")).not.toBeInTheDocument();
   });
 
   it("toggles optional sources from More sources", async () => {
@@ -69,57 +52,17 @@ describe("Ubik shell", () => {
     expect(screen.getByText("Organization · Salesforce")).toBeInTheDocument();
   });
 
-  it("opens the share dialog from Know Anything", async () => {
-    window.history.pushState({}, "", "/chat");
-    render(createElement(App));
-
-    fireEvent.click(await screen.findByText("Share"));
-
-    expect(await screen.findByRole("heading", { name: "Share" })).toBeInTheDocument();
-    expect(screen.getByText("Only me")).toBeInTheDocument();
-    expect(screen.getByText("Team access")).toBeInTheDocument();
-    expect(screen.getByText("Public access")).toBeInTheDocument();
-    expect(screen.getByText("Copy link")).toBeInTheDocument();
-  });
-
-  it("opens a fresh temporary chat from the composer icon", async () => {
+  it("keeps the fixed workbench row visible after topbar removal", async () => {
     window.history.pushState({}, "", "/chat?tab=chat-home");
     render(createElement(App));
 
-    const composer = await screen.findByPlaceholderText(CHAT_PLACEHOLDER);
-    fireEvent.change(composer, {
-      target: { value: "Review the latest approvals queue." },
-    });
-
-    fireEvent.click(screen.getByLabelText("Open temporary chat"));
-
-    await waitFor(() => {
-      expect(window.location.search).not.toContain("tab=chat-home");
-    });
-
-    expect(screen.getByPlaceholderText(CHAT_PLACEHOLDER)).toHaveValue("");
-    expect(screen.getByText("Temp Chat")).toBeInTheDocument();
-  });
-
-  it("limits the workbench to 8 tabs", async () => {
-    window.history.pushState({}, "", "/chat?tab=chat-home");
-    render(createElement(App));
-
-    for (let index = 0; index < 3; index += 1) {
-      fireEvent.click(screen.getByLabelText("Open temporary chat"));
-      await waitFor(() => {
-        expect(screen.getAllByText("Temp Chat").length).toBe(index + 1);
-      });
-    }
-
-    fireEvent.click(screen.getByLabelText("Open temporary chat"));
-    fireEvent.click(await screen.findByText("New Thread"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Tab limit reached")).toBeInTheDocument();
-    });
-
-    expect(screen.getAllByRole("button", { name: /Close / }).length).toBe(7);
+    expect(await screen.findByRole("button", { name: "Home" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ubik" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Inbox" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Meetings" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Projects" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Open new tab menu")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Contextual Ubik search")).not.toBeInTheDocument();
   });
 
   it("opens the command palette from Create", async () => {
@@ -142,9 +85,7 @@ describe("Ubik shell", () => {
     fireEvent.click(await screen.findByText("Fetch pending approvals from agents"));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Human-in-the-loop review queue with auditable recommendations."),
-      ).toBeInTheDocument();
+      expect(window.location.pathname).toBe("/approvals");
     });
 
     expect(screen.getByText("Pending approvals")).toBeInTheDocument();
@@ -159,7 +100,7 @@ describe("Ubik shell", () => {
     expect(await screen.findByText("Actions")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Open approval and assign/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Open discuss panel/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Open this thread in chat/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Open this thread in ubik/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Mark thread as read/i })).toBeInTheDocument();
 
     expect(screen.queryByText("Context suggestion")).not.toBeInTheDocument();
@@ -212,7 +153,7 @@ describe("Ubik shell", () => {
     });
   });
 
-  it("matches Meetings v4.4 action rail and transcript behavior", async () => {
+  it("matches Meetings refreshed action rail and transcript behavior without chat tab", async () => {
     window.localStorage.clear();
     window.history.pushState({}, "", `/meetings/${meetings[0]?.id ?? ""}`);
     render(createElement(App));
@@ -221,12 +162,20 @@ describe("Ubik shell", () => {
     expect(screen.getByRole("button", { name: /Open share meeting panel/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Open add to project panel/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Open create meeting panel/i })).toBeInTheDocument();
-    expect(screen.queryByText("Meeting chat")).not.toBeInTheDocument();
+    const meetingChatTab = screen
+      .queryAllByRole("button", { name: /^chat$/i })
+      .find((button) => button.className.includes("rounded-full"));
+    expect(meetingChatTab).toBeUndefined();
 
     expect(screen.getByText("Why this matters")).toBeInTheDocument();
     expect(screen.getByText("What changed")).toBeInTheDocument();
     expect(screen.getByText("What is blocked")).toBeInTheDocument();
     expect(screen.getByText("Recommended next step")).toBeInTheDocument();
+    expect(screen.getByLabelText("Meetings bottom chat input")).toBeInTheDocument();
+    expect(screen.getByLabelText("Meeting bottom chat folder")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Join now and start recording/i })).toBeInTheDocument();
+    expect(screen.queryByText("All recipes")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Ask anything... use @ to mention tabs, skills, agents")).not.toBeInTheDocument();
 
     expect(screen.queryByText(/Decision:/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /transcript/i }));
@@ -235,16 +184,14 @@ describe("Ubik shell", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Open share meeting panel/i }));
     expect(await screen.findByText("App targets")).toBeInTheDocument();
-    expect(screen.getByLabelText("Also add to task")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Also add to task")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Close share meeting panel/i }));
 
-    fireEvent.click(screen.getByRole("button", { name: /summary/i }));
     const attendeeSection = screen.getByText("Attendees").closest("section");
     expect(attendeeSection).toBeTruthy();
-    fireEvent.mouseEnter(within(attendeeSection as HTMLElement).getByText("Raj Mehta"));
-    expect(await screen.findByText("What’s on their mind")).toBeInTheDocument();
-    expect(screen.getByText("Worth bringing up")).toBeInTheDocument();
-    expect(screen.getByText("Heads up")).toBeInTheDocument();
+    expect(within(attendeeSection as HTMLElement).getByText("Raj Mehta")).toBeInTheDocument();
+    expect(within(attendeeSection as HTMLElement).getAllByText("Profile").length).toBeGreaterThan(0);
+    expect(within(attendeeSection as HTMLElement).getAllByText("Email").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole("button", { name: /Open create meeting panel/i }));
     expect(await screen.findByText("Create meeting request")).toBeInTheDocument();
@@ -258,13 +205,29 @@ describe("Ubik shell", () => {
     window.history.pushState({}, "", "/meetings");
     render(createElement(App));
 
+    expect(await screen.findByLabelText("Search meetings")).toBeInTheDocument();
     expect(await screen.findByText("Schedule landing")).toBeInTheDocument();
     expect(screen.getByText("Week agenda")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Create new meeting draft/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Join now and start recording/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Create folder label")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Meetings bottom chat input")).toBeInTheDocument();
+    expect(screen.getByLabelText("Meeting bottom chat folder")).toBeInTheDocument();
+    expect(screen.queryByText("All recipes")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /^day$/i }));
     expect(await screen.findByText("Day agenda")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /^month$/i }));
     expect(await screen.findByText("Month buckets")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Create new meeting draft/i }));
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/meetings/new");
+    });
+    expect(screen.getByText("New meeting note")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Join now and start recording/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Join now and start recording/i }));
+    expect(await screen.findByText("Untitled meeting")).toBeInTheDocument();
   }, 15000);
 });

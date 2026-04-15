@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, CheckSquare, Plus, SendHorizontal, Square } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, CheckSquare, Link2, Mail, Plus, SendHorizontal, Square } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -34,6 +34,27 @@ export default function MeetingDetail() {
   const notes = notesByMeeting[meeting.id] ?? meeting.generatedNotes ?? "";
   const activeView = activeViewByMeeting[meeting.id] ?? "summary";
   const actionChecks = actionChecksByMeeting[meeting.id] ?? {};
+  const attendeeCards = useMemo(() => {
+    const seen = new Set<string>();
+    return meeting.participants
+      .filter((name) => {
+        const key = name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((name) => {
+        const isBot = name.toLowerCase().includes("bot");
+        const title = isBot ? "Automation partner" : name.toLowerCase().includes("ops") ? "Operations lead" : "Stakeholder";
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        return {
+          name,
+          title,
+          profileUrl: `https://www.linkedin.com/in/${slug}`,
+          email: `${slug}@example.com`,
+        };
+      });
+  }, [meeting.participants]);
 
   const nextState = () => {
     const currentIndex = noteStateFlow.indexOf(noteState);
@@ -45,9 +66,9 @@ export default function MeetingDetail() {
     setNotesByMeeting({ ...notesByMeeting, [meeting.id]: next });
   };
 
-  const addQuickNote = () => {
+  const addNewMeetingDraft = () => {
     const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    const line = `- [ ] Quick note ${stamp}`;
+    const line = `- [ ] New meeting draft ${stamp}`;
     const next = notes.trim() ? `${notes.trimEnd()}\n${line}` : line;
     setNotes(next);
     setActiveViewByMeeting({ ...activeViewByMeeting, [meeting.id]: "notes" });
@@ -206,8 +227,8 @@ export default function MeetingDetail() {
               >
                 Prep
               </SmallButton>
-              <SmallButton onClick={addQuickNote}>
-                <Plus className="mr-2 h-3.5 w-3.5" /> Quick Note
+              <SmallButton onClick={addNewMeetingDraft}>
+                <Plus className="mr-2 h-3.5 w-3.5" /> New meeting
               </SmallButton>
             </div>
 
@@ -226,33 +247,29 @@ export default function MeetingDetail() {
 
           <Surface className="bg-background p-4 xl:sticky xl:top-4 xl:h-fit">
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Pre-read people</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {meeting.participants.map((person) => (
-                <span key={person} className="inline-flex items-center border border-border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-foreground">
-                  {person}
-                </span>
+            <div className="mt-2 space-y-2">
+              {attendeeCards.map((person) => (
+                <article key={person.name} className="rounded-md border border-border/80 bg-background p-2.5">
+                  <p className="text-sm text-foreground">{person.name}</p>
+                  <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{person.title}</p>
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <a
+                      className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                      href={person.profileUrl}
+                      onClick={(event) => event.preventDefault()}
+                    >
+                      <Link2 className="h-3 w-3" /> Profile
+                    </a>
+                    <a
+                      className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                      href={`mailto:${person.email}`}
+                      onClick={(event) => event.preventDefault()}
+                    >
+                      <Mail className="h-3 w-3" /> Email
+                    </a>
+                  </div>
+                </article>
               ))}
-            </div>
-
-            {meeting.preReadNudges?.length ? (
-              <>
-                <Separator className="my-4" />
-                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Pre-read nudges</p>
-                <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  {meeting.preReadNudges.map((nudge) => (
-                    <p key={nudge}>- {nudge}</p>
-                  ))}
-                </div>
-              </>
-            ) : null}
-
-            <Separator className="my-4" />
-
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Meeting metadata</p>
-            <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-              <p className="line-clamp-1">Project: {meeting.linkedProject ?? "Unlinked"}</p>
-              <p className="line-clamp-1">Client: {meeting.linkedClient ?? "Unlinked"}</p>
-              <p className="line-clamp-1">Vendor: {meeting.vendor ?? "Unlinked"}</p>
             </div>
           </Surface>
         </div>

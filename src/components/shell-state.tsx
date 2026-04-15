@@ -125,7 +125,7 @@ export function ShellStateProvider({ children }: { children: React.ReactNode }) 
       title: "Tab limit reached",
       eyebrow: "Workbench",
       description: `You can keep up to ${MAX_WORKBENCH_TABS} tabs open at once to protect the web layout.`,
-      actions: ["Close a tab", "Return to Know Anything"],
+      actions: ["Close a tab", "Return to Ubik"],
     });
   };
 

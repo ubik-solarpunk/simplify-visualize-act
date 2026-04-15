@@ -33,7 +33,7 @@ export const routeMetas: RouteMeta[] = [
   },
   {
     key: "chat",
-    title: "Know Anything",
+    title: "Ubik",
     path: "/chat",
     description: "Ask across organization, inbox, meetings, projects or internet, when you need them.",
     actions: [{ label: "New Thread", kind: "primary" }, { label: "Share", kind: "secondary" }],
@@ -50,7 +50,7 @@ export const routeMetas: RouteMeta[] = [
     title: "Meetings",
     path: "/meetings",
     description: "Meeting continuity, decisions, and follow-through.",
-    actions: [{ label: "Schedule", kind: "primary" }, { label: "Prep", kind: "secondary" }],
+    actions: [],
   },
   {
     key: "projects",
@@ -112,7 +112,7 @@ export const routeMetas: RouteMeta[] = [
 
 export const navigationItems: NavigationItem[] = [
   { key: "home", title: "Home", path: "/home", section: "navigate" },
-  { key: "chat", title: "Know Anything", path: "/chat", section: "navigate" },
+  { key: "chat", title: "Ubik", path: "/chat", section: "navigate" },
   { key: "inbox", title: "Inbox", path: "/inbox", section: "navigate", badge: "12" },
   { key: "meetings", title: "Meetings", path: "/meetings", section: "navigate" },
   { key: "projects", title: "Projects", path: "/projects", section: "navigate" },
@@ -127,7 +127,7 @@ export const navigationItems: NavigationItem[] = [
 
 export const initialWorkbenchTabs: WorkbenchTab[] = [
   { id: "home-main", routeKey: "home", title: "Home", path: "/home", pinned: true, closable: false },
-  { id: "chat-main", routeKey: "chat", title: "Know Anything", path: "/chat", pinned: true, closable: true },
+  { id: "chat-main", routeKey: "chat", title: "Ubik", path: "/chat", pinned: true, closable: true },
   { id: "inbox-main", routeKey: "inbox", title: "Inbox", path: "/inbox", pinned: true, closable: true },
   { id: "meetings-main", routeKey: "meetings", title: "Meetings", path: "/meetings", pinned: true, closable: true },
   { id: "projects-main", routeKey: "projects", title: "Projects", path: "/projects", pinned: true, closable: true },

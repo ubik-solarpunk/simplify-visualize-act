@@ -109,7 +109,7 @@ export default function Index() {
     const selectedSources = selectedLabels.join(", ") || "None";
 
     openRuntime({
-      title: "Know Anything runtime",
+      title: "Ubik runtime",
       status: "Ready",
       lines: [
         `> Mode: ${mode.toUpperCase()}`,
@@ -122,7 +122,7 @@ export default function Index() {
 
     openDrawer({
       title: "Query context",
-      eyebrow: "Know Anything",
+      eyebrow: "Ubik",
       description: "Seeded context assembly preview.",
       metadata: [
         { label: "Mode", value: mode.toUpperCase() },
@@ -137,7 +137,7 @@ export default function Index() {
       <PageContainer className="flex min-h-[calc(100vh-17rem)] items-center justify-center">
         <div className="w-full max-w-[860px]">
           <div className="text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Know Anything</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Ubik</p>
             <h2 className="mt-2 text-4xl text-foreground">Good afternoon, Hemanth</h2>
             <p className="mt-2 text-sm text-muted-foreground">Ask across inbox, meetings, projects, docs, and internet.</p>
           </div>

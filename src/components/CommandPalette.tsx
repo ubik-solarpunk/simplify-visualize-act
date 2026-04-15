@@ -157,7 +157,7 @@ export function CommandPalette() {
     if (pathname.startsWith("/projects")) return "Projects";
     if (pathname.startsWith("/approvals")) return "Approvals";
     if (pathname.startsWith("/intelligence")) return "Intelligence";
-    return "Know Anything";
+    return "Ubik";
   }, [location.pathname]);
 
   const defaultNewChatPrompt = (seed: string) => {
@@ -182,7 +182,7 @@ export function CommandPalette() {
       openDrawer({
         title: "Email compose",
         eyebrow: "Compose",
-        description: "Seeded email compose surface. Draft in Know Anything, then copy into your mail client.",
+        description: "Seeded email compose surface. Draft in Ubik, then copy into your mail client.",
         metadata: [
           { label: "To", value: "Select recipient" },
           { label: "Subject", value: "Add subject" },

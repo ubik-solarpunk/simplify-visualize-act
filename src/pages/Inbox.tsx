@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Archive, CalendarDays, CheckSquare, ChevronDown, ChevronUp, EllipsisVertical, Eye, Filter, FolderOpen, Mail, MessageSquare, Paperclip, Search, SendHorizontal, Square } from "lucide-react";
+import { CalendarDays, CheckSquare, ChevronDown, ChevronUp, EllipsisVertical, Filter, FolderOpen, MessageSquare, Paperclip, Search, SendHorizontal, Square } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { PageContainer } from "@/components/page-container";
@@ -419,12 +419,12 @@ export default function Inbox() {
     setPageState(`${tabId}:chat-composer`, prompt);
     setPageState(`${tabId}:chat-sources`, ["org_knowledge", "files", "gmail"]);
     setPageState(`${tabId}:chat-mode`, "speed");
-    toast("Opened in Chat", {
+    toast("Opened in Ubik", {
       description: "Email context and Gmail source were prefilled.",
     });
   };
 
-  const sectionLabelClass = "font-mono text-[10px] uppercase tracking-[0.12em] text-foreground/70";
+  const sectionLabelClass = "font-mono text-[10px] uppercase tracking-[0.12em] text-foreground/65";
   const actionButtonClass =
     "inline-flex h-10 items-center justify-center gap-1.5 border border-border bg-background px-3 text-xs uppercase tracking-[0.08em] text-foreground transition-colors hover:bg-background/80";
 
@@ -480,13 +480,12 @@ export default function Inbox() {
   };
 
   return (
-    <div className="px-4 py-6 lg:px-8">
-      <PageContainer className="space-y-3">
-        <p className="text-sm text-foreground/80">Unified thread intelligence across inbound channels and extracted tasks.</p>
-
-        <Surface className="bg-background px-3 py-2.5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
+    <div className="px-4 py-5 lg:px-8">
+      <PageContainer className="space-y-4">
+        <Surface className="bg-background px-4 py-3.5">
+          <p className="text-[15px] text-foreground/85">Unified thread intelligence across inbound channels and extracted tasks.</p>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
               {([
                 ["all", "All"],
                 ["unread", "Unread"],
@@ -499,7 +498,7 @@ export default function Inbox() {
                 </SmallButton>
               ))}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <SmallButton onClick={() => setFilterPromptOpen((open) => !open)}>
                 <Filter className="mr-2 h-3.5 w-3.5" /> Filter
               </SmallButton>
@@ -508,7 +507,7 @@ export default function Inbox() {
           </div>
 
           {filterPromptOpen ? (
-            <div className="mt-2 flex items-center gap-2 border border-border bg-background px-3 transition-all duration-200">
+            <div className="mt-2 flex items-center gap-2 rounded-md border border-border bg-background px-3 transition-all duration-200">
               <Search className="h-4 w-4 text-foreground/70" />
               <input
                 className="h-10 w-full bg-transparent text-sm text-foreground outline-none"
@@ -520,10 +519,10 @@ export default function Inbox() {
           ) : null}
         </Surface>
 
-        <div className="grid gap-3 xl:grid-cols-[0.86fr_1.64fr_0.95fr]">
-          <Surface className="bg-background">
+        <div className="grid gap-3 xl:grid-cols-[0.9fr_1.58fr_1.02fr]">
+          <Surface className="bg-background p-1.5">
             {visibleFiltered.length ? (
-              <div className="divide-y divide-border">
+              <div className="space-y-1.5">
                 {visibleFiltered.map((thread) => {
                   const selected = selectedThread?.id === thread.id;
                   const isUnread = isThreadUnread(thread);
@@ -537,10 +536,10 @@ export default function Inbox() {
                   return (
                     <div
                       key={thread.id}
-                      className={`group w-full border-l-2 px-4 py-3.5 text-left transition-all duration-200 ${
+                      className={`group w-full rounded-md border px-3.5 py-3 text-left transition-all duration-200 ${
                         selected
-                          ? "border-l-primary bg-[hsl(var(--primary)/0.04)]"
-                          : "border-l-transparent hover:border-l-border hover:bg-[hsl(var(--foreground)/0.02)]"
+                          ? "border-primary/45 bg-[hsl(var(--primary)/0.06)]"
+                          : "border-border/75 bg-background hover:border-border hover:bg-[hsl(var(--foreground)/0.02)]"
                       }`}
                       onClick={() => selectThread(thread.id)}
                       onKeyDown={(event) => {
@@ -552,20 +551,22 @@ export default function Inbox() {
                       role="button"
                       tabIndex={0}
                     >
-                      <p className="line-clamp-2 text-[17px] leading-6 text-foreground">{thread.subject}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="line-clamp-2 text-[16px] leading-6 text-foreground">{thread.subject}</p>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-foreground/55">{thread.source}</span>
+                      </div>
                       <div className="mt-1.5 flex items-center gap-2">
                         <span className="text-sm text-foreground">{thread.sender}</span>
-                        <span className="text-sm text-foreground/70">{thread.time}</span>
+                        <span className="text-sm text-foreground/65">{thread.time}</span>
                         {isUnread ? <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-primary">Unread</span> : null}
                       </div>
                       <p className="mt-1.5 line-clamp-2 text-sm text-foreground/80">{thread.preview}</p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.11em] text-foreground/60">{thread.source}</span>
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         {thread.domainTag ? (
-                          <span className="font-mono text-[10px] uppercase tracking-[0.11em] text-foreground/60">{thread.domainTag}</span>
+                          <span className="rounded-full bg-[hsl(var(--foreground)/0.05)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.11em] text-foreground/60">{thread.domainTag}</span>
                         ) : null}
                         {thread.intentTag ? (
-                          <span className="font-mono text-[10px] uppercase tracking-[0.11em] text-foreground/60">{thread.intentTag}</span>
+                          <span className="rounded-full bg-[hsl(var(--foreground)/0.05)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.11em] text-foreground/60">{thread.intentTag}</span>
                         ) : null}
                         {highSignalLabel ? (
                           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.11em] text-primary">{highSignalLabel}</span>
@@ -585,7 +586,7 @@ export default function Inbox() {
                           >
                             {isUnread ? "Mark reviewed" : "Reviewed"}
                           </button>
-                          <span className="h-3.5 w-px bg-border/80" />
+                          <span className="h-3.5 w-px bg-border/70" />
                           <button
                             aria-label={isWatched ? `Unwatch ${thread.subject}` : `Watch ${thread.subject}`}
                             className={`h-7 px-0 transition-colors hover:text-foreground ${
@@ -600,7 +601,7 @@ export default function Inbox() {
                           >
                             Watch
                           </button>
-                          <span className="h-3.5 w-px bg-border/80" />
+                          <span className="h-3.5 w-px bg-border/70" />
                           <button
                             aria-label={`Archive ${thread.subject}`}
                             className="h-7 px-0 transition-colors hover:text-foreground"
@@ -613,7 +614,7 @@ export default function Inbox() {
                           >
                             Archive
                           </button>
-                          <span className="h-3.5 w-px bg-border/80" />
+                          <span className="h-3.5 w-px bg-border/70" />
                           <button
                             aria-label={`Open in Email for ${thread.subject}`}
                             className="h-7 px-0 transition-colors hover:text-foreground"
@@ -695,11 +696,11 @@ export default function Inbox() {
           <Surface className="bg-background p-4">
             {selectedThread ? (
               <>
-                <p className="text-xs uppercase tracking-[0.12em] text-foreground/70">
+                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-foreground/65">
                   {selectedThread.sender} · {selectedThread.source} · {selectedThread.time}
                 </p>
-                <h2 className="mt-2 text-[34px] leading-[1.12] text-foreground">{selectedThread.subject}</h2>
-                <p className="mt-2 text-[15px] text-foreground">{selectedThread.preview}</p>
+                <h2 className="mt-2 text-[32px] leading-[1.12] text-foreground">{selectedThread.subject}</h2>
+                <p className="mt-2 text-[15px] text-foreground/85">{selectedThread.preview}</p>
 
                 <div className="mt-4 grid gap-2 md:grid-cols-2">
                   {insightBlocks.map((block) => (
@@ -721,7 +722,7 @@ export default function Inbox() {
                   ))}
                 </div>
 
-                <div className="mt-4 border border-border/80 bg-background p-3">
+                <div className="mt-4 rounded-md border border-border/80 bg-[hsl(var(--foreground)/0.01)] p-3">
                   <p className={sectionLabelClass}>UBIK analysis</p>
                   <div className="mt-2 space-y-1 text-sm leading-6 text-foreground">
                     {threadInsights.map((line) => (
@@ -730,7 +731,7 @@ export default function Inbox() {
                   </div>
                 </div>
 
-                <div className="mt-4 border border-border/80 bg-background p-3">
+                <div className="mt-4 rounded-md border border-border/80 bg-[hsl(var(--foreground)/0.01)] p-3">
                   <p className={sectionLabelClass}>Thread messages</p>
                   <div className="mt-3 space-y-2">
                     {threadBubbles.map((bubble) => (
@@ -757,7 +758,7 @@ export default function Inbox() {
 
                 <Separator className="my-3" />
 
-                <div className="space-y-2 border border-border/80 bg-[hsl(var(--foreground)/0.01)] p-3">
+                <div className="space-y-2 rounded-md border border-border/80 bg-[hsl(var(--foreground)/0.01)] p-3">
                   <button
                     className="flex w-full items-center justify-between text-left"
                     onClick={() =>
@@ -856,9 +857,9 @@ export default function Inbox() {
           <Surface className="bg-background p-4 xl:sticky xl:top-4 xl:max-h-[calc(100vh-8rem)] xl:overflow-auto">
             {selectedThread ? (
               <>
-                <p className={sectionLabelClass}>Actions</p>
-                <div className="mt-2.5">
-                  <div className="grid grid-cols-2 gap-2">
+                <section className="rounded-md border border-border/80 bg-[hsl(var(--foreground)/0.01)] p-3">
+                  <p className={sectionLabelClass}>Actions</p>
+                  <div className="mt-2.5 grid grid-cols-2 gap-2">
                     <button
                       aria-label={approvalOpen ? "Close approval and assign" : "Open approval and assign"}
                       className={`${actionButtonClass} ${
@@ -892,12 +893,12 @@ export default function Inbox() {
                       Discuss
                     </button>
                     <button
-                      aria-label="Open this thread in chat"
+                      aria-label="Open this thread in ubik"
                       className={actionButtonClass}
                       onClick={openInChat}
                       type="button"
                     >
-                      <MessageSquare className="h-3.5 w-3.5" /> Chat
+                      <MessageSquare className="h-3.5 w-3.5" /> Ubik
                     </button>
                     <button
                       aria-label={isRead ? "Thread already read" : "Mark thread as read"}
@@ -908,7 +909,7 @@ export default function Inbox() {
                       {isRead ? "Marked as Read" : "Mark as Read"}
                     </button>
                   </div>
-                </div>
+                </section>
                 {renderContactPickerPanel({
                   open: approvalOpen,
                   query: approvalQuery,
@@ -958,11 +959,10 @@ export default function Inbox() {
                   sentLabel: `Shared with ${selectedDiscussContact?.name ?? "teammate"}.`,
                 })}
 
-                <Separator className="my-3" />
-
-                <p className={sectionLabelClass}>Quick task</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <button
+                <section className="mt-3 rounded-md border border-border/80 bg-[hsl(var(--foreground)/0.01)] p-3">
+                  <p className={sectionLabelClass}>Quick task</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
                     aria-label={taskInputEnabled ? "Disable task input" : "Enable task input"}
                     className={`transition-colors ${taskInputEnabled ? "text-primary" : "text-foreground/70 hover:text-foreground"}`}
                     onClick={() =>
@@ -993,37 +993,39 @@ export default function Inbox() {
                     placeholder="Add task line and press Enter"
                     value={taskInput}
                   />
-                </div>
+                  </div>
+                  {addedTasks.length ? (
+                    <div className="mt-3 space-y-1.5">
+                      {addedTasks.map((task) => (
+                        <div key={task.id} className="rounded-md border border-border/80 bg-background p-2 text-xs">
+                          <p className="line-clamp-2 text-sm text-foreground">{task.title}</p>
+                          <p className="mt-1 text-foreground/70">
+                            {task.status} · Due {task.due} · <span className="text-primary">{task.priority}</span>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-xs text-foreground/70">No tasks added for this thread yet.</p>
+                  )}
+                </section>
 
-                {addedTasks.length ? (
-                  <div className="mt-3 space-y-1.5">
-                    {addedTasks.map((task) => (
-                      <div key={task.id} className="border border-border/80 bg-background p-2 text-xs">
-                        <p className="line-clamp-2 text-sm text-foreground">{task.title}</p>
-                        <p className="mt-1 text-foreground/70">
-                          {task.status} · Due {task.due} · <span className="text-primary">{task.priority}</span>
-                        </p>
-                      </div>
+                <section className="mt-3 rounded-md border border-border/80 bg-[hsl(var(--foreground)/0.01)] p-3">
+                  <p className={sectionLabelClass}>Provenance</p>
+                  <div className="mt-2 space-y-1.5 text-sm text-foreground/75">
+                    {selectedThread.provenance.slice(0, 3).map((entry) => (
+                      <p key={entry} className="line-clamp-1">{entry}</p>
                     ))}
                   </div>
-                ) : (
-                  <p className="mt-3 text-xs text-foreground/70">No tasks added for this thread yet.</p>
-                )}
+                </section>
 
-                <Separator className="my-3" />
-
-                <p className={sectionLabelClass}>Provenance</p>
-                <div className="mt-2 space-y-1.5 text-sm text-foreground/75">
-                  {selectedThread.provenance.slice(0, 3).map((entry) => (
-                    <p key={entry} className="line-clamp-1">{entry}</p>
-                  ))}
-                </div>
-
-                <p className={`mt-3 ${sectionLabelClass}`}>People</p>
-                <div className="mt-2 border border-border/80 bg-background p-2 text-sm">
-                  <p className="text-foreground">{selectedThread.sender}</p>
-                  <p className="text-foreground/70">Owner: {selectedThread.owner}</p>
-                </div>
+                <section className="mt-3 rounded-md border border-border/80 bg-[hsl(var(--foreground)/0.01)] p-3">
+                  <p className={sectionLabelClass}>People</p>
+                  <div className="mt-2 rounded-md border border-border/80 bg-background p-2 text-sm">
+                    <p className="text-foreground">{selectedThread.sender}</p>
+                    <p className="text-foreground/70">Owner: {selectedThread.owner}</p>
+                  </div>
+                </section>
               </>
             ) : (
               <p className="text-sm text-foreground/70">No selected thread.</p>
