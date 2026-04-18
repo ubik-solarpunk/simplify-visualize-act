@@ -1,6 +1,180 @@
 # Unified UI Handoff
 
 ## Status
+- Latest completed pass: **Meetings command-rail and folder-composer pass**.
+- Verification is green for this pass:
+  - `pnpm build`
+  - `pnpm test`
+  - `pnpm exec eslint src/pages/Meetings.tsx`
+- Repo-wide lint status is unchanged: pre-existing `Inbox.tsx` issues still keep `pnpm lint` red.
+- No open functional blocker.
+
+## Latest visual requirements
+- Layout:
+  - add an inbox-style meetings command bar at the top of the main pane, with the collapse control at far left and the Google Calendar icon at far right
+  - keep the meetings rail lighter than inbox, but move the collapse interaction into the command bar so landing and detail behave the same way
+  - make folder creation a hidden composer that appears only after clicking `New folder`
+  - keep the folder composer compact enough for the rail width while supporting name, icon, prompt, and optional contacts
+  - show meeting-row actions inside meetings mode so a record can move to another folder or go to trash without opening detail
+  - remove the extra summary tags in detail and replace the generic breadcrumb root with the actual folder name
+- Spacing:
+  - keep the command bar dense and auto-layout like inbox instead of introducing a second loose toolbar
+  - let the hidden folder composer expand inline without permanently burning vertical rail space
+- Typography:
+  - preserve the mono micro-label system
+  - keep detail breadcrumbs and titles cleaner by removing generic `Meetings` as the first crumb
+- Color:
+  - stay on the existing muted preset surfaces and command-rail treatment already established in inbox
+- Interactions:
+  - `Delete`, `Discuss`, `Approve`, `Remind`, `New`, and Google Calendar now live in the top meetings command rail
+  - `New folder` opens a real collapsible composer with phosphor icon selection and optional shared-contact picks
+  - meetings in the meetings-mode rail now expose a hover action menu for move-to-folder and trash
+  - the detail summary no longer shows leftover labels like `Planning` / `Transcript`
+- Responsive behavior:
+  - the command rail still wraps only when it needs to, and the sidebar collapse continues to widen the main canvas
+
+## Visual evidence
+- Before (landing before command rail / collapsible composer pass): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-comment-followup-landing-after.png`
+- Before (detail before breadcrumb + summary cleanup): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-diff-comments-detail-after.png`
+- After (landing with inbox-style command rail): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-command-rail-landing-after.png`
+- After (folder composer expanded from `New folder`): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-folder-composer-expanded-after.png`
+- After (meetings-mode row action menu): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-row-actions-after.png`
+- After (detail with folder breadcrumb root and cleaned summary): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-detail-command-rail-after.png`
+
+## Visual delta summary
+- Meetings now has a real inbox-style action rail at the top of both landing and detail, and that rail owns the sidebar collapse control.
+- The add-folder UI no longer sits permanently in the rail. It stays hidden until `New folder` is clicked, then expands into a focused composer with name, icon, prompt, and contact selection.
+- Meetings-mode rows now surface an action menu for moving records between folders or trashing them directly from the rail.
+- Detail breadcrumbs now start from the actual folder, and the stray summary labels are gone so the document reads cleaner.
+
+## Status
+- Latest completed pass: **Meetings follow-up: rail search relocation, internal folder rename, and conditional upcoming strip**.
+- Verification is green for this pass:
+  - `pnpm build`
+  - `pnpm test`
+  - `pnpm exec eslint src/pages/Meetings.tsx`
+- Repo-wide lint status is unchanged from the previous pass: pre-existing `Inbox.tsx` errors still keep `pnpm lint` red.
+- No open functional blocker.
+
+## Latest visual requirements
+- Layout:
+  - move the meeting search control into the collapsible nested rail, above the `Folders` / `Meetings` toggle
+  - remove the heading/title/description copy block from the rail header so the rail starts with controls instead of explanation
+  - keep the main landing canvas cleaner by removing the duplicate top search field from the content pane
+  - keep the upcoming strip only when the selected folder actually has upcoming meetings
+- Spacing:
+  - use the freed rail-header height for the search input instead of stacking extra copy
+  - let the no-upcoming folder state pull the timeline upward rather than leaving a dead placeholder section
+- Typography:
+  - preserve the existing mono micro-label system
+  - replace the overly personal `My notes` naming with an org-internal example
+- Color:
+  - no new accent system; stay on preset neutrals and current blue meeting emphasis
+- Interactions:
+  - the same search input now lives in the rail and drives the meetings page from there
+  - selecting the internal folder should show the timeline immediately, without an empty upcoming-card section above it
+  - the former `My notes` slot is now an internal operating folder example (`Plant Operations`)
+- Responsive behavior:
+  - the rail still collapses the same way; only the control placement changed
+
+## Visual evidence
+- Before (pre-follow-up landing): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-comment-followup-before.png`
+- After (default landing with search moved into rail and internal folder renamed): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-comment-followup-landing-after.png`
+- After (Plant Operations selected, no upcoming strip rendered): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-comment-followup-no-upcoming-after.png`
+
+## Visual delta summary
+- The rail now opens directly into search plus the `Folders / Meetings` toggle; the old `MEETINGS / Folders & history / Folder journeys...` copy block is gone.
+- The main canvas no longer repeats the search field at the top, so the landing view starts closer to actual meeting content.
+- The `My notes` row is replaced by `Plant Operations`, which reads like an org-internal folder instead of a personal scratchpad.
+- When that internal folder has no upcoming calls, the `Upcoming today` strip disappears entirely and the grouped timeline starts at the top of the canvas.
+
+## Status
+- Latest completed pass: **Meetings diff-comments follow-up: folder/meeting rail toggle, landing timeline gating, notion-style detail tabs**.
+- Verification is green for this pass:
+  - `pnpm build`
+  - `pnpm test`
+  - `pnpm exec eslint src/pages/Meetings.tsx`
+- Repo-wide lint is still not green because of pre-existing `Inbox.tsx` errors (`no-extra-boolean-cast`) plus existing warnings outside Meetings.
+- No open functional blocker.
+
+## Latest visual requirements
+- Layout:
+  - make the meetings nested rail behave like inbox with a two-way toggle: `Folders` and `Meetings`
+  - default the rail to `Folders`, move folder creation into the rail itself, and fit the inline name + icon composer inside the rail width
+  - keep the landing state as the default canvas, but show the grouped landing list only while `Folders` mode is active
+  - make the meeting detail page read like a single-column notion document instead of split summary columns
+- Spacing:
+  - keep the folder rail rows compact enough to fit icon, description, count, and hover actions without breaking the width
+  - make the detail document stack breathe vertically with clear section blocks rather than side-by-side cards
+- Typography:
+  - preserve the mono section micro-labels
+  - keep the detail header lighter and cleaner by removing redundant badge rows and label chips
+- Color:
+  - stay on existing preset tokens and keep emphasis on structure rather than new fills
+  - preserve the blue lead-card emphasis in the landing upcoming strip
+- Interactions:
+  - sidebar toggle now flips between folder journeys and meeting history sections
+  - landing chat now has separate selectors for scope (`All meetings` or a folder journey) and range (`Recent 25` default, or `All history`)
+  - meeting detail now exposes `Summary`, `Transcript`, and `Files` tabs
+  - participant row now carries a right-edge share button with popup actions for `Email`, `Copy link`, `Slack`, plus add-contact search
+  - summary action items are editable checkbox rows with task-routing nudges
+  - footer CTA now sends `Ask` / Q&A rather than `Save prompt`
+- Responsive behavior:
+  - when the rail is collapsed, the main meetings canvas still expands cleanly
+
+## Visual evidence
+- Before (landing baseline before comment pass): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-nested-sidebar-landing-after.png`
+- After (landing with folder/meeting toggle, inline folder composer, grouped timeline, and chat selectors): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-diff-comments-landing-tall-after.png`
+- After (detail with notion-style tabs, cleaned header, editable task rows, and ask footer): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-diff-comments-detail-after.png`
+- After (detail share popover open): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-diff-comments-detail-share-after.png`
+
+## Visual delta summary
+- The left rail no longer mixes everything in one list. It now opens in `Folders`, mirrors inbox’s two-state toggle, and moves folder creation into a compact inline composer with icon choices.
+- The landing page still keeps the upcoming strip and bottom chat, but the old always-on list is now gated to folder mode and broken into collapsible timeline sections instead of one flat block.
+- The bottom chat no longer uses the previous single `All meetings` chip pattern. It now lets the user target a folder journey separately from the recent-vs-all range, with `Recent 25` preselected.
+- The meeting detail header is much cleaner: no `Prep` button, no extra meta badge row, no label row. The body is now a single-column document with `Summary / Transcript / Files`, editable checklist tasks, a share popup, and an `Ask` footer CTA.
+
+## Status
+- Latest completed pass: **Meetings nested sidebar landing refactor**.
+- Verification is green:
+  - `pnpm build`
+  - `pnpm test`
+- No open functional blocker.
+
+## Latest visual requirements
+- Layout:
+  - make meetings use an inbox-style collapsible nested sidebar, but split it into `Folders` and `Previous meetings`
+  - keep the no-selection meetings state as a real landing view instead of forcing a note/detail canvas immediately
+  - restore the screenshot-style landing structure with a top search bar, an `Upcoming today` horizontal strip, a `Today` schedule list, and the bottom chat surface
+  - keep the meeting detail route intact, but let the same nested sidebar collapse/expand from the main meetings header
+- Spacing:
+  - keep the landing surface scan-first, with denser horizontal meeting cards and a clean schedule list below
+  - make the bottom chat area feel anchored instead of floating as a separate folder-workspace panel
+- Typography:
+  - keep the preset’s compact mono micro-labels for section headers and counts
+  - preserve the utilitarian hierarchy from inbox rather than introducing a softer “notes app” treatment
+- Color:
+  - stay on existing preset tokens
+  - give the soonest upcoming card stronger emphasis while keeping the rest of the landing view neutral
+- Interactions:
+  - the meetings sidebar now collapses from the main header toggle, similar to inbox
+  - the landing chat’s former `All recipes` affordance is replaced by a scope selector for `Recent meetings`, `All meetings`, and folder journeys
+  - clicking any upcoming card, schedule row, or previous-meeting item opens the meeting detail view
+- Responsive behavior:
+  - when collapsed, the nested meetings rail is removed and the landing surface expands to full width
+
+## Visual evidence
+- Before (pre-refactor meetings landing): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-before-nested-sidebar.png`
+- After (expanded landing with nested sidebar): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-nested-sidebar-landing-after.png`
+- After (landing with meetings sidebar collapsed): `/Users/shubhranshujha/Codex/simplify-visualize-act/output/playwright/meetings-nested-sidebar-collapsed-after.png`
+
+## Visual delta summary
+- Meetings now opens on a true landing screen: search, upcoming strip, today list, and the lower chat surface are all visible before a meeting is selected.
+- The left meetings rail now behaves like inbox focus mode, but the content is split into folders first and previously happened meetings second.
+- The bottom landing chat no longer points to `All recipes`; it now scopes the prompt across recent meetings, all meetings, or a specific folder journey directly from the landing view.
+- The main meetings canvas can collapse the nested rail and stretch wide without losing the landing structure or the detail route.
+
+## Status
 - Latest completed pass: **Inbox left-rail collapse cleanup pass**.
 - Verification is green:
   - `pnpm build`
